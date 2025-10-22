@@ -1,0 +1,11 @@
+{
+  "name": "jam-track-generator-example",
+  "version": "0.1.0",
+  "description": "Example web app for the Modal Vamp Jam Track Generator",
+  "scripts": {
+    "serve": "python3 -m http.server 8080"
+  },
+  "keywords": ["wasm", "audio", "music", "rust"],
+  "author": "",
+  "license": "MIT"
+}

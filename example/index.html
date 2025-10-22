@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Vamp Jam Track Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        select, input[type="range"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input[type="range"] {
+            padding: 0;
+            height: 40px;
+        }
+
+        .tempo-display {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 8px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #generateBtn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        #generateBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        #generateBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #stopBtn {
+            background: #f44336;
+            color: white;
+        }
+
+        #stopBtn:hover:not(:disabled) {
+            background: #d32f2f;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(244, 67, 54, 0.4);
+        }
+
+        #stopBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .info-box h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .chord-progression {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .chord {
+            background: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .status.playing {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status.stopped {
+            background: #9e9e9e;
+            color: white;
+        }
+
+        .status.error {
+            background: #f44336;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎸 Modal Vamp Jam Generator</h1>
+        <p class="subtitle">Create looping chord progressions for jamming</p>
+
+        <div id="loading" class="loading">
+            Loading WASM module...
+        </div>
+
+        <div id="controls" class="hidden">
+            <div class="control-group">
+                <label for="keySelect">Key</label>
+                <select id="keySelect">
+                    <option value="C">C</option>
+                    <option value="C#">C# / Db</option>
+                    <option value="D">D</option>
+                    <option value="D#">D# / Eb</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                    <option value="F#" selected>F# / Gb</option>
+                    <option value="G">G</option>
+                    <option value="G#">G# / Ab</option>
+                    <option value="A">A</option>
+                    <option value="A#">A# / Bb</option>
+                    <option value="B">B</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="modeSelect">Mode</label>
+                <select id="modeSelect">
+                    <option value="Ionian">Ionian (Major)</option>
+                    <option value="Dorian">Dorian</option>
+                    <option value="Phrygian" selected>Phrygian</option>
+                    <option value="Lydian">Lydian</option>
+                    <option value="Mixolydian">Mixolydian</option>
+                    <option value="Aeolian">Aeolian (Minor)</option>
+                    <option value="Locrian">Locrian</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="tempoSlider">Tempo</label>
+                <input type="range" id="tempoSlider" min="60" max="200" value="150" step="1">
+                <div class="tempo-display"><span id="tempoValue">150</span> BPM</div>
+            </div>
+
+            <div class="button-group">
+                <button id="generateBtn">▶️ Generate & Play</button>
+                <button id="stopBtn" disabled>⏹️ Stop</button>
+            </div>
+
+            <div id="status" class="status stopped">Ready to generate</div>
+
+            <div id="infoBox" class="info-box hidden">
+                <h3>Chord Progression:</h3>
+                <div id="chordProgression" class="chord-progression"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import init, {
+            JamTrackConfig,
+            JamTrackGenerator,
+            get_available_keys,
+            get_available_modes
+        } from './pkg/jam_track_generator.js';
+
+        let audioContext = null;
+        let sourceNode = null;
+        let generator = null;
+
+        const keySelect = document.getElementById('keySelect');
+        const modeSelect = document.getElementById('modeSelect');
+        const tempoSlider = document.getElementById('tempoSlider');
+        const tempoValue = document.getElementById('tempoValue');
+        const generateBtn = document.getElementById('generateBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        const infoBox = document.getElementById('infoBox');
+        const chordProgression = document.getElementById('chordProgression');
+        const loading = document.getElementById('loading');
+        const controls = document.getElementById('controls');
+
+        // Update tempo display
+        tempoSlider.addEventListener('input', (e) => {
+            tempoValue.textContent = e.target.value;
+        });
+
+        // Initialize WASM
+        async function initWasm() {
+            try {
+                await init();
+                console.log('WASM module loaded successfully');
+                loading.classList.add('hidden');
+                controls.classList.remove('hidden');
+            } catch (err) {
+                console.error('Failed to load WASM module:', err);
+                loading.textContent = 'Error loading WASM module: ' + err.message;
+            }
+        }
+
+        // Generate and play audio
+        async function generateAndPlay() {
+            try {
+                // Initialize audio context on first user interaction
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                // Stop any currently playing audio
+                stopAudio();
+
+                // Update status
+                updateStatus('Generating...', 'stopped');
+                generateBtn.disabled = true;
+
+                // Get configuration
+                const key = keySelect.value;
+                const mode = modeSelect.value;
+                const tempo = parseFloat(tempoSlider.value);
+
+                console.log(`Generating track: ${key} ${mode} @ ${tempo} BPM`);
+
+                // Create configuration
+                const config = new JamTrackConfig(key, mode, tempo);
+
+                // Create generator
+                generator = new JamTrackGenerator(config);
+
+                // Get chord progression info
+                const progressionJson = generator.get_progression_info();
+                const chords = JSON.parse(progressionJson);
+                displayChordProgression(chords);
+
+                // Generate samples
+                const samples = generator.generate_samples();
+                const sampleRate = generator.sample_rate();
+                const duration = generator.duration();
+
+                console.log(`Generated ${samples.length} samples at ${sampleRate} Hz (${duration}s)`);
+
+                // Create audio buffer
+                const audioBuffer = audioContext.createBuffer(1, samples.length, sampleRate);
+                const channelData = audioBuffer.getChannelData(0);
+
+                // Copy samples to buffer
+                for (let i = 0; i < samples.length; i++) {
+                    channelData[i] = samples[i];
+                }
+
+                // Create and start source node with looping
+                sourceNode = audioContext.createBufferSource();
+                sourceNode.buffer = audioBuffer;
+                sourceNode.loop = true;
+                sourceNode.connect(audioContext.destination);
+                sourceNode.start(0);
+
+                // Update UI
+                updateStatus('Playing (looping)', 'playing');
+                generateBtn.disabled = false;
+                stopBtn.disabled = false;
+
+            } catch (err) {
+                console.error('Error generating audio:', err);
+                updateStatus('Error: ' + err.message, 'error');
+                generateBtn.disabled = false;
+            }
+        }
+
+        // Stop audio playback
+        function stopAudio() {
+            if (sourceNode) {
+                try {
+                    sourceNode.stop();
+                } catch (e) {
+                    // Ignore if already stopped
+                }
+                sourceNode.disconnect();
+                sourceNode = null;
+            }
+            updateStatus('Stopped', 'stopped');
+            stopBtn.disabled = true;
+        }
+
+        // Update status display
+        function updateStatus(message, type) {
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        // Display chord progression
+        function displayChordProgression(chords) {
+            chordProgression.innerHTML = '';
+            chords.forEach(chord => {
+                const chordEl = document.createElement('div');
+                chordEl.className = 'chord';
+                chordEl.textContent = chord;
+                chordProgression.appendChild(chordEl);
+            });
+            infoBox.classList.remove('hidden');
+        }
+
+        // Event listeners
+        generateBtn.addEventListener('click', generateAndPlay);
+        stopBtn.addEventListener('click', stopAudio);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            stopAudio();
+            if (audioContext) {
+                audioContext.close();
+            }
+        });
+
+        // Initialize
+        initWasm();
+    </script>
+</body>
+</html>
