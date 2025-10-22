@@ -132,11 +132,12 @@ pub fn mix_samples(buffers: Vec<Vec<f32>>) -> Vec<f32> {
     }
 
     let max_len = buffers.iter().map(|b| b.len()).max().unwrap_or(0);
+    let num_buffers = buffers.len() as f32;
     let mut result = vec![0.0; max_len];
 
     for buffer in buffers {
         for (i, &sample) in buffer.iter().enumerate() {
-            result[i] += sample / buffers.len() as f32;
+            result[i] += sample / num_buffers;
         }
     }
 
