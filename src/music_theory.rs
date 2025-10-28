@@ -321,83 +321,210 @@ pub fn get_chord_tab(chord_name: &str) -> Option<ChordTab> {
     }
 }
 
-/// Generate a chord progression for a given mode
-pub fn generate_modal_progression(root: Note, mode: Mode) -> Vec<Chord> {
+/// Get multiple progression variations for a given mode
+fn get_progression_variations(root: Note, mode: Mode) -> Vec<Vec<Chord>> {
     let scale = mode.scale(root);
 
-    // Generate triads based on the mode's characteristic intervals
     match mode {
         Mode::Phrygian => {
-            // Phrygian: emphasize the b2 and minor quality
-            // Common progression: i - bII - i - bVII
             vec![
-                Chord::minor(scale[0]),  // i
-                Chord::major(scale[1]),  // bII
-                Chord::minor(scale[0]),  // i
-                Chord::major(scale[6]),  // bVII
+                // Variation 1: Classic Phrygian vamp
+                vec![
+                    Chord::minor(scale[0]),  // i
+                    Chord::major(scale[1]),  // bII
+                    Chord::minor(scale[0]),  // i
+                    Chord::major(scale[6]),  // bVII
+                ],
+                // Variation 2: Extended vamp
+                vec![
+                    Chord::minor(scale[0]),  // i
+                    Chord::major(scale[1]),  // bII
+                    Chord::major(scale[6]),  // bVII
+                    Chord::major(scale[1]),  // bII
+                ],
+                // Variation 3: Dark progression
+                vec![
+                    Chord::minor(scale[0]),  // i
+                    Chord::major(scale[6]),  // bVII
+                    Chord::major(scale[5]),  // bVI
+                    Chord::major(scale[1]),  // bII
+                ],
             ]
         }
         Mode::Dorian => {
-            // Dorian: emphasize the major VI
-            // Common progression: i - IV - i - IV
             vec![
-                Chord::minor(scale[0]),  // i
-                Chord::major(scale[3]),  // IV
-                Chord::minor(scale[0]),  // i
-                Chord::major(scale[3]),  // IV
+                // Variation 1: Classic Dorian
+                vec![
+                    Chord::minor(scale[0]),  // i
+                    Chord::major(scale[3]),  // IV
+                    Chord::minor(scale[0]),  // i
+                    Chord::major(scale[3]),  // IV
+                ],
+                // Variation 2: Full Dorian sound
+                vec![
+                    Chord::minor(scale[0]),  // i
+                    Chord::minor(scale[3]),  // iv
+                    Chord::major(scale[4]),  // V
+                    Chord::major(scale[3]),  // IV
+                ],
+                // Variation 3: Modal interchange
+                vec![
+                    Chord::minor(scale[0]),  // i
+                    Chord::major(scale[6]),  // VII
+                    Chord::major(scale[3]),  // IV
+                    Chord::minor(scale[4]),  // v
+                ],
             ]
         }
         Mode::Lydian => {
-            // Lydian: emphasize the #4
-            // Common progression: I - II - I - II
             vec![
-                Chord::major(scale[0]),  // I
-                Chord::major(scale[1]),  // II
-                Chord::major(scale[0]),  // I
-                Chord::major(scale[1]),  // II
+                // Variation 1: Classic Lydian
+                vec![
+                    Chord::major(scale[0]),  // I
+                    Chord::major(scale[1]),  // II
+                    Chord::major(scale[0]),  // I
+                    Chord::major(scale[1]),  // II
+                ],
+                // Variation 2: Dreamy progression
+                vec![
+                    Chord::major(scale[0]),  // I
+                    Chord::major(scale[1]),  // II
+                    Chord::minor(scale[5]),  // vi
+                    Chord::major(scale[1]),  // II
+                ],
+                // Variation 3: Bright progression
+                vec![
+                    Chord::major(scale[0]),  // I
+                    Chord::major(scale[4]),  // V
+                    Chord::major(scale[1]),  // II
+                    Chord::major(scale[4]),  // V
+                ],
             ]
         }
         Mode::Mixolydian => {
-            // Mixolydian: emphasize the b7
-            // Common progression: I - bVII - I - bVII
             vec![
-                Chord::major(scale[0]),  // I
-                Chord::major(scale[6]),  // bVII
-                Chord::major(scale[0]),  // I
-                Chord::major(scale[6]),  // bVII
+                // Variation 1: Classic Mixolydian
+                vec![
+                    Chord::major(scale[0]),  // I
+                    Chord::major(scale[6]),  // bVII
+                    Chord::major(scale[0]),  // I
+                    Chord::major(scale[6]),  // bVII
+                ],
+                // Variation 2: Bluesy progression
+                vec![
+                    Chord::major(scale[0]),  // I
+                    Chord::major(scale[6]),  // bVII
+                    Chord::major(scale[3]),  // IV
+                    Chord::major(scale[6]),  // bVII
+                ],
+                // Variation 3: Rock progression
+                vec![
+                    Chord::major(scale[0]),  // I
+                    Chord::major(scale[3]),  // IV
+                    Chord::major(scale[6]),  // bVII
+                    Chord::major(scale[3]),  // IV
+                ],
             ]
         }
         Mode::Aeolian => {
-            // Aeolian (natural minor): classic minor progression
-            // Common progression: i - iv - i - v
             vec![
-                Chord::minor(scale[0]),  // i
-                Chord::minor(scale[3]),  // iv
-                Chord::minor(scale[0]),  // i
-                Chord::minor(scale[4]),  // v
+                // Variation 1: Classic minor
+                vec![
+                    Chord::minor(scale[0]),  // i
+                    Chord::minor(scale[3]),  // iv
+                    Chord::minor(scale[0]),  // i
+                    Chord::minor(scale[4]),  // v
+                ],
+                // Variation 2: Descending bass
+                vec![
+                    Chord::minor(scale[0]),  // i
+                    Chord::major(scale[6]),  // VII
+                    Chord::major(scale[5]),  // VI
+                    Chord::major(scale[4]),  // V
+                ],
+                // Variation 3: Emotional progression
+                vec![
+                    Chord::minor(scale[0]),  // i
+                    Chord::major(scale[5]),  // VI
+                    Chord::major(scale[3]),  // III
+                    Chord::major(scale[6]),  // VII
+                ],
             ]
         }
         Mode::Ionian => {
-            // Ionian (major): classic major progression
-            // Common progression: I - IV - I - V
             vec![
-                Chord::major(scale[0]),  // I
-                Chord::major(scale[3]),  // IV
-                Chord::major(scale[0]),  // I
-                Chord::major(scale[4]),  // V
+                // Variation 1: Classic I-IV-I-V
+                vec![
+                    Chord::major(scale[0]),  // I
+                    Chord::major(scale[3]),  // IV
+                    Chord::major(scale[0]),  // I
+                    Chord::major(scale[4]),  // V
+                ],
+                // Variation 2: I-V-vi-IV (pop progression)
+                vec![
+                    Chord::major(scale[0]),  // I
+                    Chord::major(scale[4]),  // V
+                    Chord::minor(scale[5]),  // vi
+                    Chord::major(scale[3]),  // IV
+                ],
+                // Variation 3: Circle progression
+                vec![
+                    Chord::major(scale[0]),  // I
+                    Chord::minor(scale[5]),  // vi
+                    Chord::major(scale[3]),  // IV
+                    Chord::major(scale[4]),  // V
+                ],
             ]
         }
         Mode::Locrian => {
-            // Locrian: emphasize the diminished quality
-            // Common progression: i° - bII - i° - bV
             vec![
-                Chord::diminished(scale[0]),  // i°
-                Chord::major(scale[1]),       // bII
-                Chord::diminished(scale[0]),  // i°
-                Chord::major(scale[4]),       // bV
+                // Variation 1: Classic Locrian
+                vec![
+                    Chord::diminished(scale[0]),  // i°
+                    Chord::major(scale[1]),       // bII
+                    Chord::diminished(scale[0]),  // i°
+                    Chord::major(scale[4]),       // bV
+                ],
+                // Variation 2: Unstable progression
+                vec![
+                    Chord::diminished(scale[0]),  // i°
+                    Chord::major(scale[4]),       // bV
+                    Chord::major(scale[1]),       // bII
+                    Chord::major(scale[4]),       // bV
+                ],
+                // Variation 3: Dark progression
+                vec![
+                    Chord::diminished(scale[0]),  // i°
+                    Chord::major(scale[1]),       // bII
+                    Chord::minor(scale[2]),       // ii
+                    Chord::major(scale[4]),       // bV
+                ],
             ]
         }
     }
+}
+
+/// Generate a random chord progression for a given mode
+/// Uses a pseudo-random selection based on the current timestamp
+pub fn generate_modal_progression(root: Note, mode: Mode) -> Vec<Chord> {
+    let variations = get_progression_variations(root, mode);
+
+    // Use a simple pseudo-random selection based on time
+    // This is deterministic within the same millisecond but varies across calls
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis();
+
+    let index = (timestamp % variations.len() as u128) as usize;
+    variations[index].clone()
+}
+
+/// Generate a specific variation of a chord progression (0-based index)
+pub fn generate_modal_progression_variation(root: Note, mode: Mode, variation: usize) -> Vec<Chord> {
+    let variations = get_progression_variations(root, mode);
+    let index = variation % variations.len();
+    variations[index].clone()
 }
 
 #[cfg(test)]
