@@ -504,20 +504,18 @@ fn get_progression_variations(root: Note, mode: Mode) -> Vec<Vec<Chord>> {
     }
 }
 
-/// Generate a random chord progression for a given mode
-/// Uses a pseudo-random selection based on the current timestamp
-pub fn generate_modal_progression(root: Note, mode: Mode) -> Vec<Chord> {
+/// Generate a chord progression for a given mode with variation based on seed
+/// The seed parameter allows for pseudo-random selection (pass 0 for first variation)
+pub fn generate_modal_progression_with_seed(root: Note, mode: Mode, seed: usize) -> Vec<Chord> {
     let variations = get_progression_variations(root, mode);
-
-    // Use a simple pseudo-random selection based on time
-    // This is deterministic within the same millisecond but varies across calls
-    let timestamp = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis();
-
-    let index = (timestamp % variations.len() as u128) as usize;
+    let index = seed % variations.len();
     variations[index].clone()
+}
+
+/// Generate a chord progression for a given mode (returns first variation)
+/// For varied progressions, use generate_modal_progression_with_seed
+pub fn generate_modal_progression(root: Note, mode: Mode) -> Vec<Chord> {
+    generate_modal_progression_with_seed(root, mode, 0)
 }
 
 /// Generate a specific variation of a chord progression (0-based index)

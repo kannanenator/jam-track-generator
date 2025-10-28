@@ -401,18 +401,21 @@
                 // Create generator
                 generator = new JamTrackGenerator(config);
 
+                // Use current timestamp as seed for variation
+                const seed = Math.floor(Date.now() / 1000);
+
                 // Get chord progression info
-                const progressionJson = generator.get_progression_info();
+                const progressionJson = generator.get_progression_info_with_seed(seed);
                 const chords = JSON.parse(progressionJson);
                 displayChordProgression(chords);
 
                 // Get and display chord tabs
-                const tabsJson = generator.get_chord_tabs();
+                const tabsJson = generator.get_chord_tabs_with_seed(seed);
                 const tabs = JSON.parse(tabsJson);
                 displayChordTabs(tabs);
 
                 // Generate samples
-                const samples = generator.generate_samples();
+                const samples = generator.generate_samples_with_seed(seed);
                 const sampleRate = generator.sample_rate();
                 const duration = generator.duration();
 

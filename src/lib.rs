@@ -2,7 +2,7 @@ mod audio;
 mod music_theory;
 
 use audio::{generate_progression_samples, SAMPLE_RATE};
-use music_theory::{generate_modal_progression, Mode, Note};
+use music_theory::{generate_modal_progression, generate_modal_progression_with_seed, Mode, Note};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -105,7 +105,43 @@ impl JamTrackGenerator {
         Ok(JamTrackGenerator { config })
     }
 
-    /// Generate audio samples for the jam track
+    /// Generate audio samples for the jam track with a seed for variation
+    #[wasm_bindgen]
+    pub fn generate_samples_with_seed(&self, seed: usize) -> Result<Vec<f32>, JsValue> {
+        // Parse the key
+        let root = Note::from_string(&self.config.key)
+            .ok_or_else(|| JsValue::from_str(&format!("Invalid key: {}", self.config.key)))?;
+
+        // Parse the mode
+        let mode = Mode::from_string(&self.config.mode)
+            .ok_or_else(|| JsValue::from_str(&format!("Invalid mode: {}", self.config.mode)))?;
+
+        console_log!("Generating progression for {} {} (seed: {})", root, mode, seed);
+
+        // Generate the chord progression with seed
+        let progression = generate_modal_progression_with_seed(root, mode, seed);
+
+        console_log!("Generated {} chords", progression.len());
+
+        // Log the chord progression
+        for (i, chord) in progression.iter().enumerate() {
+            console_log!("Chord {}: {}", i + 1, chord.name);
+        }
+
+        // Generate audio samples
+        let samples = generate_progression_samples(
+            &progression,
+            self.config.octave,
+            self.config.tempo,
+            self.config.beats_per_chord,
+        );
+
+        console_log!("Generated {} samples", samples.len());
+
+        Ok(samples)
+    }
+
+    /// Generate audio samples for the jam track (uses first variation)
     #[wasm_bindgen]
     pub fn generate_samples(&self) -> Result<Vec<f32>, JsValue> {
         // Parse the key
@@ -155,16 +191,16 @@ impl JamTrackGenerator {
         num_chords * self.config.beats_per_chord * seconds_per_beat
     }
 
-    /// Get the chord progression as a JSON string
+    /// Get the chord progression as a JSON string with seed
     #[wasm_bindgen]
-    pub fn get_progression_info(&self) -> Result<String, JsValue> {
+    pub fn get_progression_info_with_seed(&self, seed: usize) -> Result<String, JsValue> {
         let root = Note::from_string(&self.config.key)
             .ok_or_else(|| JsValue::from_str(&format!("Invalid key: {}", self.config.key)))?;
 
         let mode = Mode::from_string(&self.config.mode)
             .ok_or_else(|| JsValue::from_str(&format!("Invalid mode: {}", self.config.mode)))?;
 
-        let progression = generate_modal_progression(root, mode);
+        let progression = generate_modal_progression_with_seed(root, mode, seed);
 
         let chord_names: Vec<String> = progression.iter().map(|c| c.name.clone()).collect();
 
@@ -172,16 +208,22 @@ impl JamTrackGenerator {
             .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
     }
 
-    /// Get chord tabs (guitar fingerings) for the progression as JSON
+    /// Get the chord progression as a JSON string
     #[wasm_bindgen]
-    pub fn get_chord_tabs(&self) -> Result<String, JsValue> {
+    pub fn get_progression_info(&self) -> Result<String, JsValue> {
+        self.get_progression_info_with_seed(0)
+    }
+
+    /// Get chord tabs (guitar fingerings) for the progression as JSON with seed
+    #[wasm_bindgen]
+    pub fn get_chord_tabs_with_seed(&self, seed: usize) -> Result<String, JsValue> {
         let root = Note::from_string(&self.config.key)
             .ok_or_else(|| JsValue::from_str(&format!("Invalid key: {}", self.config.key)))?;
 
         let mode = Mode::from_string(&self.config.mode)
             .ok_or_else(|| JsValue::from_str(&format!("Invalid mode: {}", self.config.mode)))?;
 
-        let progression = generate_modal_progression(root, mode);
+        let progression = generate_modal_progression_with_seed(root, mode, seed);
 
         let chord_tabs: Vec<_> = progression
             .iter()
@@ -190,6 +232,12 @@ impl JamTrackGenerator {
 
         serde_json::to_string(&chord_tabs)
             .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+    }
+
+    /// Get chord tabs (guitar fingerings) for the progression as JSON
+    #[wasm_bindgen]
+    pub fn get_chord_tabs(&self) -> Result<String, JsValue> {
+        self.get_chord_tabs_with_seed(0)
     }
 
     /// Update the configuration
