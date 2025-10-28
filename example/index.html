@@ -157,6 +157,83 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
+        .chord-tabs {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .chord-diagram {
+            text-align: center;
+        }
+
+        .chord-name {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .chord-grid {
+            display: inline-block;
+            border: 2px solid #333;
+            border-radius: 4px;
+            padding: 5px;
+            background: white;
+        }
+
+        .chord-strings {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chord-string {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .string-label {
+            font-size: 10px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .fret {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9f9f9;
+        }
+
+        .fret.pressed {
+            background: #667eea;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .fret.open {
+            background: white;
+            border: 2px solid #4caf50;
+            border-radius: 50%;
+        }
+
+        .fret.muted {
+            color: #f44336;
+            font-weight: bold;
+            font-size: 16px;
+            border: none;
+            background: transparent;
+        }
+
         .status {
             margin-top: 10px;
             padding: 10px;
@@ -248,6 +325,7 @@
             <div id="infoBox" class="info-box hidden">
                 <h3>Chord Progression:</h3>
                 <div id="chordProgression" class="chord-progression"></div>
+                <div id="chordTabs" class="chord-tabs"></div>
             </div>
         </div>
     </div>
@@ -273,6 +351,7 @@
         const status = document.getElementById('status');
         const infoBox = document.getElementById('infoBox');
         const chordProgression = document.getElementById('chordProgression');
+        const chordTabs = document.getElementById('chordTabs');
         const loading = document.getElementById('loading');
         const controls = document.getElementById('controls');
 
@@ -326,6 +405,11 @@
                 const progressionJson = generator.get_progression_info();
                 const chords = JSON.parse(progressionJson);
                 displayChordProgression(chords);
+
+                // Get and display chord tabs
+                const tabsJson = generator.get_chord_tabs();
+                const tabs = JSON.parse(tabsJson);
+                displayChordTabs(tabs);
 
                 // Generate samples
                 const samples = generator.generate_samples();
@@ -393,6 +477,84 @@
                 chordProgression.appendChild(chordEl);
             });
             infoBox.classList.remove('hidden');
+        }
+
+        // Draw a single chord diagram
+        function drawChordDiagram(chordTab) {
+            if (!chordTab) return null;
+
+            const diagram = document.createElement('div');
+            diagram.className = 'chord-diagram';
+
+            const chordName = document.createElement('div');
+            chordName.className = 'chord-name';
+            chordName.textContent = chordTab.name;
+            diagram.appendChild(chordName);
+
+            const grid = document.createElement('div');
+            grid.className = 'chord-grid';
+
+            const strings = document.createElement('div');
+            strings.className = 'chord-strings';
+
+            const stringNames = ['E', 'A', 'D', 'G', 'B', 'E'];
+            const numFrets = 5;
+
+            // Draw each string
+            chordTab.fingers.forEach((fretNum, stringIndex) => {
+                const stringDiv = document.createElement('div');
+                stringDiv.className = 'chord-string';
+
+                // String label
+                const label = document.createElement('div');
+                label.className = 'string-label';
+                label.textContent = stringNames[stringIndex];
+                stringDiv.appendChild(label);
+
+                // Draw frets
+                if (fretNum === -1) {
+                    // Muted string
+                    const fret = document.createElement('div');
+                    fret.className = 'fret muted';
+                    fret.textContent = '×';
+                    stringDiv.appendChild(fret);
+                } else if (fretNum === 0) {
+                    // Open string
+                    const fret = document.createElement('div');
+                    fret.className = 'fret open';
+                    fret.textContent = '○';
+                    stringDiv.appendChild(fret);
+                } else {
+                    // Fretted notes
+                    for (let i = 1; i <= numFrets; i++) {
+                        const fret = document.createElement('div');
+                        fret.className = 'fret';
+                        if (i === fretNum) {
+                            fret.classList.add('pressed');
+                            fret.textContent = i;
+                        }
+                        stringDiv.appendChild(fret);
+                    }
+                }
+
+                strings.appendChild(stringDiv);
+            });
+
+            grid.appendChild(strings);
+            diagram.appendChild(grid);
+
+            return diagram;
+        }
+
+        // Display chord tabs
+        function displayChordTabs(tabs) {
+            chordTabs.innerHTML = '';
+            tabs.forEach(tab => {
+                const diagram = drawChordDiagram(tab);
+                if (diagram) {
+                    chordTabs.appendChild(diagram);
+                }
+            });
         }
 
         // Event listeners

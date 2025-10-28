@@ -223,6 +223,102 @@ impl Chord {
     pub fn power(root: Note) -> Self {
         Chord::new(root, vec![0, 7], format!("{}5", root))
     }
+
+    /// Get guitar chord tab/fingering for this chord
+    pub fn get_guitar_tab(&self) -> Option<ChordTab> {
+        get_chord_tab(&self.name)
+    }
+}
+
+/// Represents a guitar chord fingering
+/// Strings are ordered from low E to high E: [E, A, D, G, B, E]
+/// -1 means don't play that string (muted)
+/// 0 means play open string
+/// 1+ means fret number
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChordTab {
+    pub name: String,
+    pub fingers: Vec<i8>, // Fret positions for each string (low E to high E)
+    pub base_fret: u8,    // Starting fret (for barre chords)
+}
+
+impl ChordTab {
+    pub fn new(name: String, fingers: Vec<i8>, base_fret: u8) -> Self {
+        ChordTab {
+            name,
+            fingers,
+            base_fret,
+        }
+    }
+}
+
+/// Get guitar chord tab for a chord name
+pub fn get_chord_tab(chord_name: &str) -> Option<ChordTab> {
+    // Standard guitar chord fingerings
+    // Format: [E, A, D, G, B, E] from low to high
+    match chord_name {
+        // C chords
+        "C" => Some(ChordTab::new("C".to_string(), vec![-1, 3, 2, 0, 1, 0], 0)),
+        "Cm" => Some(ChordTab::new("Cm".to_string(), vec![-1, 3, 5, 5, 4, 3], 0)),
+        "Cdim" => Some(ChordTab::new("Cdim".to_string(), vec![-1, 3, 4, 5, 4, -1], 0)),
+
+        // C# / Db chords
+        "C#" => Some(ChordTab::new("C#".to_string(), vec![-1, 4, 6, 6, 6, 4], 0)),
+        "C#m" => Some(ChordTab::new("C#m".to_string(), vec![-1, 4, 6, 6, 5, 4], 0)),
+        "C#dim" => Some(ChordTab::new("C#dim".to_string(), vec![-1, 4, 5, 6, 5, -1], 0)),
+
+        // D chords
+        "D" => Some(ChordTab::new("D".to_string(), vec![-1, -1, 0, 2, 3, 2], 0)),
+        "Dm" => Some(ChordTab::new("Dm".to_string(), vec![-1, -1, 0, 2, 3, 1], 0)),
+        "Ddim" => Some(ChordTab::new("Ddim".to_string(), vec![-1, -1, 0, 1, 3, 1], 0)),
+
+        // D# / Eb chords
+        "D#" => Some(ChordTab::new("D#".to_string(), vec![-1, -1, 1, 3, 4, 3], 0)),
+        "D#m" => Some(ChordTab::new("D#m".to_string(), vec![-1, -1, 1, 3, 4, 2], 0)),
+        "D#dim" => Some(ChordTab::new("D#dim".to_string(), vec![-1, -1, 1, 2, 4, 2], 0)),
+
+        // E chords
+        "E" => Some(ChordTab::new("E".to_string(), vec![0, 2, 2, 1, 0, 0], 0)),
+        "Em" => Some(ChordTab::new("Em".to_string(), vec![0, 2, 2, 0, 0, 0], 0)),
+        "Edim" => Some(ChordTab::new("Edim".to_string(), vec![0, 1, 2, 0, 2, 0], 0)),
+
+        // F chords
+        "F" => Some(ChordTab::new("F".to_string(), vec![1, 3, 3, 2, 1, 1], 0)),
+        "Fm" => Some(ChordTab::new("Fm".to_string(), vec![1, 3, 3, 1, 1, 1], 0)),
+        "Fdim" => Some(ChordTab::new("Fdim".to_string(), vec![1, 2, 3, 1, 3, 1], 0)),
+
+        // F# / Gb chords
+        "F#" => Some(ChordTab::new("F#".to_string(), vec![2, 4, 4, 3, 2, 2], 0)),
+        "F#m" => Some(ChordTab::new("F#m".to_string(), vec![2, 4, 4, 2, 2, 2], 0)),
+        "F#dim" => Some(ChordTab::new("F#dim".to_string(), vec![2, 3, 4, 2, 4, 2], 0)),
+
+        // G chords
+        "G" => Some(ChordTab::new("G".to_string(), vec![3, 2, 0, 0, 0, 3], 0)),
+        "Gm" => Some(ChordTab::new("Gm".to_string(), vec![3, 5, 5, 3, 3, 3], 0)),
+        "Gdim" => Some(ChordTab::new("Gdim".to_string(), vec![3, 4, 5, 3, 5, 3], 0)),
+
+        // G# / Ab chords
+        "G#" => Some(ChordTab::new("G#".to_string(), vec![4, 6, 6, 5, 4, 4], 0)),
+        "G#m" => Some(ChordTab::new("G#m".to_string(), vec![4, 6, 6, 4, 4, 4], 0)),
+        "G#dim" => Some(ChordTab::new("G#dim".to_string(), vec![4, 5, 6, 4, 6, 4], 0)),
+
+        // A chords
+        "A" => Some(ChordTab::new("A".to_string(), vec![-1, 0, 2, 2, 2, 0], 0)),
+        "Am" => Some(ChordTab::new("Am".to_string(), vec![-1, 0, 2, 2, 1, 0], 0)),
+        "Adim" => Some(ChordTab::new("Adim".to_string(), vec![-1, 0, 1, 2, 1, -1], 0)),
+
+        // A# / Bb chords
+        "A#" => Some(ChordTab::new("A#".to_string(), vec![-1, 1, 3, 3, 3, 1], 0)),
+        "A#m" => Some(ChordTab::new("A#m".to_string(), vec![-1, 1, 3, 3, 2, 1], 0)),
+        "A#dim" => Some(ChordTab::new("A#dim".to_string(), vec![-1, 1, 2, 3, 2, -1], 0)),
+
+        // B chords
+        "B" => Some(ChordTab::new("B".to_string(), vec![-1, 2, 4, 4, 4, 2], 0)),
+        "Bm" => Some(ChordTab::new("Bm".to_string(), vec![-1, 2, 4, 4, 3, 2], 0)),
+        "Bdim" => Some(ChordTab::new("Bdim".to_string(), vec![-1, 2, 3, 4, 3, -1], 0)),
+
+        _ => None,
+    }
 }
 
 /// Generate a chord progression for a given mode

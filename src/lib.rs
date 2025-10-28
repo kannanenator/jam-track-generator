@@ -172,6 +172,26 @@ impl JamTrackGenerator {
             .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
     }
 
+    /// Get chord tabs (guitar fingerings) for the progression as JSON
+    #[wasm_bindgen]
+    pub fn get_chord_tabs(&self) -> Result<String, JsValue> {
+        let root = Note::from_string(&self.config.key)
+            .ok_or_else(|| JsValue::from_str(&format!("Invalid key: {}", self.config.key)))?;
+
+        let mode = Mode::from_string(&self.config.mode)
+            .ok_or_else(|| JsValue::from_str(&format!("Invalid mode: {}", self.config.mode)))?;
+
+        let progression = generate_modal_progression(root, mode);
+
+        let chord_tabs: Vec<_> = progression
+            .iter()
+            .map(|chord| chord.get_guitar_tab())
+            .collect();
+
+        serde_json::to_string(&chord_tabs)
+            .map_err(|e| JsValue::from_str(&format!("Serialization error: {}", e)))
+    }
+
     /// Update the configuration
     #[wasm_bindgen]
     pub fn update_config(&mut self, config: JamTrackConfig) {
