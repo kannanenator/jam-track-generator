@@ -3,6 +3,7 @@
 from .chords import Chord, parse_chord, parse_progression
 from .instruments import INSTRUMENTS, Instrument
 from .generator import generate
+from .meter import Meter, parse_time_signature
 
 __all__ = [
     "Chord",
@@ -11,4 +12,6 @@ __all__ = [
     "INSTRUMENTS",
     "Instrument",
     "generate",
+    "Meter",
+    "parse_time_signature",
 ]

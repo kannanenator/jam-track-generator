@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from .generator import generate
+from .generator import DEFAULT_INSTRUMENTS, generate
 from .instruments import INSTRUMENTS
 
 
@@ -16,10 +16,12 @@ def main(argv=None):
     )
     parser.add_argument("progression", help='chords, e.g. "C G Am F" or "Dm7 | G7 | Cmaj7"')
     parser.add_argument("-o", "--output", default="jam.mid", help="output .mid file")
-    parser.add_argument("-i", "--instruments", default="piano,guitar,strings,bass",
+    parser.add_argument("-i", "--instruments", default=",".join(DEFAULT_INSTRUMENTS),
                         help="comma-separated instruments (default: %(default)s)")
-    parser.add_argument("--bpm", type=float, default=100)
-    parser.add_argument("--beats-per-bar", type=int, default=4)
+    parser.add_argument("-b", "--bpm", "--tempo", type=float, default=100,
+                        help="tempo in quarter notes per minute (default: %(default)s)")
+    parser.add_argument("-t", "--time-signature", default="4/4",
+                        help="e.g. 4/4, 3/4, 6/8, 5/4 (default: %(default)s)")
     parser.add_argument("--beats-per-chord", type=int,
                         help="beats each chord lasts (default: one bar)")
     parser.add_argument("-r", "--repeats", type=int, default=4,
@@ -32,7 +34,7 @@ def main(argv=None):
     instruments = [name.strip() for name in args.instruments.split(",") if name.strip()]
     try:
         generate(args.progression, args.output, instruments=instruments, bpm=args.bpm,
-                 beats_per_bar=args.beats_per_bar, beats_per_chord=args.beats_per_chord,
+                 time_signature=args.time_signature, beats_per_chord=args.beats_per_chord,
                  repeats=args.repeats, humanize=not args.no_humanize, seed=args.seed)
     except ValueError as err:
         parser.error(str(err))
