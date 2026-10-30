@@ -696,6 +696,7 @@ const PRESETS = [
   { name: "Odd-meter vamp", chords: "Ebm7 Bbm7", sig: "5/4", bpm: 168 },
   { name: "Balkan dance", chords: "Dm Dm Gm A7", sig: "3+2+2/8", bpm: 150 },
 ];
+const presetLabel = (p, sig, bpm) => `${p.name} · ${sig} · ${bpm} bpm`;
 const SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "12/8", "5/4", "7/8"];
 const LENGTHS = [["half", "½ bar"], ["bar", "1 bar"], ["two", "2 bars"]];
 
@@ -801,7 +802,13 @@ function renderControls() {
   if (!playing) renderDots(-1);
   for (const b of $("lengths").children) b.setAttribute("aria-checked", b.dataset.v === state.length ? "true" : "false"), b.setAttribute("aria-pressed", b.dataset.v === state.length);
   const preset = PRESETS.findIndex((p) => p.chords === state.chords);
-  $("presets").value = preset < 0 ? "" : String(preset);
+  const select = $("presets");
+  // The chosen example shows the tempo and meter it's playing at now; the rest show their own.
+  PRESETS.forEach((p, i) => {
+    const text = i === preset ? presetLabel(p, state.sig, state.bpm) : presetLabel(p, p.sig, p.bpm);
+    if (select.options[i + 1].text !== text) select.options[i + 1].text = text;
+  });
+  select.value = preset < 0 ? "" : String(preset);
   for (const inst of INSTRUMENTS) {
     const row = $("row-" + inst.name);
     row.classList.toggle("off", !state.enabled[inst.name]);
@@ -813,7 +820,7 @@ function renderControls() {
 function buildUI() {
   $("chords").value = state.chords;
   $("presets").innerHTML = `<option value="" disabled>Your own chords</option>` +
-    PRESETS.map((p, i) => `<option value="${i}">${p.name} · ${p.sig} · ${p.bpm} bpm</option>`).join("");
+    PRESETS.map((p, i) => `<option value="${i}">${presetLabel(p, p.sig, p.bpm)}</option>`).join("");
   $("signatures").innerHTML = SIGNATURES.map((s) => `<button type="button" role="radio" class="chip" data-v="${s}">${s}</button>`).join("");
   $("lengths").innerHTML = LENGTHS.map(([v, l]) => `<button type="button" role="radio" class="chip" data-v="${v}" style="font-family: var(--font-body); font-size: 15px">${l}</button>`).join("");
   $("band").innerHTML = INSTRUMENTS.map((inst) => `
