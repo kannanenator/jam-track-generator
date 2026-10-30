@@ -76,6 +76,9 @@ section { background: var(--surface); border: 1px solid var(--line); border-radi
   background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
 }
 #chords:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.transpose { display: flex; align-items: center; gap: 8px; }
+.transpose span { flex: 1; color: var(--muted); font-size: 14px; }
+.transpose .btn { font-variant-numeric: tabular-nums; min-width: 92px; }
 .preset-field { display: grid; gap: 6px; }
 .preset-field label { color: var(--muted); font-size: 14px; }
 #presets { width: 100%; min-width: 0; }
@@ -202,6 +205,11 @@ body::after {
       <label class="label" id="chords-label" for="chords">Chords</label>
       <textarea id="chords" rows="2" spellcheck="false" autocapitalize="characters" autocomplete="off">C G Am F</textarea>
     </div>
+    <div class="transpose" role="group" aria-labelledby="transpose-label">
+      <span id="transpose-label">Transpose</span>
+      <button class="btn" id="transpose-down" type="button" aria-label="Transpose down a half step">− ½ step</button>
+      <button class="btn" id="transpose-up" type="button" aria-label="Transpose up a half step">+ ½ step</button>
+    </div>
     <div class="preset-field">
       <label for="presets">Start from an example</label>
       <div class="select-wrap"><select id="presets"></select></div>
@@ -314,6 +322,56 @@ function parseChord(symbol) {
 }
 
 function tokenize(text) { return text.replace(/\|/g, " ").split(/\s+/).filter(Boolean); }
+
+// ---- Transposing ----
+const SHARP_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const FLAT_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+// Keys written with flats: F Bb Eb Ab Db Gb major, D G C F Bb Eb minor.
+const FLAT_MAJOR_KEYS = [5, 10, 3, 8, 1, 6];
+const FLAT_MINOR_KEYS = [2, 7, 0, 5, 10, 3];
+const isMinor = (chord) => chord.intervals[1] === 3;
+const usesFlats = (root, minor) => (minor ? FLAT_MINOR_KEYS : FLAT_MAJOR_KEYS).includes(root);
+
+// Move every chord in `text` by `semitones`, keeping spacing, bar lines and
+// anything that isn't a chord. Sharps or flats follow the new key, taken from
+// the first chord.
+function transposeText(text, semitones) {
+  let names = SHARP_NAMES;
+  for (const token of tokenize(text)) {
+    try {
+      const first = parseChord(token);
+      if (usesFlats(mod(first.root + semitones, 12), isMinor(first))) names = FLAT_NAMES;
+      break;
+    } catch (e) { /* skip tokens that aren't chords */ }
+  }
+  return text.replace(/[^\s|]+/g, (token) => {
+    let chord;
+    try { chord = parseChord(token); } catch (e) { return token; }
+    const bass = chord.bass === chord.root ? "" : "/" + names[mod(chord.bass + semitones, 12)];
+    return names[mod(chord.root + semitones, 12)] + chord.quality + bass;
+  });
+}
+
+// How many semitones `text` sits above `original` if it's the same
+// progression in another key, else -1.
+function transpositionOf(text, original) {
+  const a = tokenize(text), b = tokenize(original);
+  if (!a.length || a.length !== b.length) return -1;
+  try {
+    const ca = a.map(parseChord), cb = b.map(parseChord);
+    const shift = mod(ca[0].root - cb[0].root, 12);
+    const same = ca.every((c, i) => c.quality === cb[i].quality &&
+      mod(c.root - cb[i].root, 12) === shift && mod(c.bass - cb[i].bass, 12) === shift);
+    return same ? shift : -1;
+  } catch (e) { return -1; }
+}
+
+function keyName(keySymbol, semitones) {
+  const key = parseChord(keySymbol);
+  const root = mod(key.root + semitones, 12);
+  const name = (usesFlats(root, isMinor(key)) ? FLAT_NAMES : SHARP_NAMES)[root];
+  return name.replace("#", "♯").replace("b", "♭") + (isMinor(key) ? "m" : "");
+}
 
 // ---- Meter (mirrors jamtrack/meter.py) ----
 const VALID_DENOMINATORS = [1, 2, 4, 8, 16, 32];
@@ -687,16 +745,16 @@ const VOICES = {
 
 // ---- App state ----
 const PRESETS = [
-  { name: "Pop I–V–vi–IV", chords: "C G Am F", sig: "4/4", bpm: 96 },
-  { name: "12-bar blues in A", chords: "A7 D7 A7 A7 | D7 D7 A7 A7 | E7 D7 A7 E7", sig: "4/4", bpm: 112 },
-  { name: "Jazz ii–V–I", chords: "Dm7 | G7 | Cmaj7 | A7", sig: "4/4", bpm: 126 },
-  { name: "Minor groove", chords: "Am7 | Fmaj7 | Dm7 | E7", sig: "4/4", bpm: 88 },
-  { name: "Waltz in D", chords: "D G A7 D", sig: "3/4", bpm: 150 },
-  { name: "Slow ballad", chords: "Em C G D", sig: "6/8", bpm: 66 },
-  { name: "Odd-meter vamp", chords: "Ebm7 Bbm7", sig: "5/4", bpm: 168 },
-  { name: "Balkan dance", chords: "Dm Dm Gm A7", sig: "3+2+2/8", bpm: 150 },
+  { name: "Pop I–V–vi–IV", key: "C", chords: "C G Am F", sig: "4/4", bpm: 96 },
+  { name: "12-bar blues", key: "A", chords: "A7 D7 A7 A7 | D7 D7 A7 A7 | E7 D7 A7 E7", sig: "4/4", bpm: 112 },
+  { name: "Jazz ii–V–I", key: "C", chords: "Dm7 | G7 | Cmaj7 | A7", sig: "4/4", bpm: 126 },
+  { name: "Minor groove", key: "Am", chords: "Am7 | Fmaj7 | Dm7 | E7", sig: "4/4", bpm: 88 },
+  { name: "Waltz", key: "D", chords: "D G A7 D", sig: "3/4", bpm: 150 },
+  { name: "Slow ballad", key: "Em", chords: "Em C G D", sig: "6/8", bpm: 66 },
+  { name: "Minor vamp", key: "Ebm", chords: "Ebm7 Bbm7", sig: "5/4", bpm: 168 },
+  { name: "Balkan dance", key: "Dm", chords: "Dm Dm Gm A7", sig: "3+2+2/8", bpm: 150 },
 ];
-const presetLabel = (p, sig, bpm) => `${p.name} · ${sig} · ${bpm} bpm`;
+const presetLabel = (p, sig, bpm, shift = 0) => `${p.name} in ${keyName(p.key, shift)} · ${sig} · ${bpm} bpm`;
 const SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "12/8", "5/4", "7/8"];
 const LENGTHS = [["half", "½ bar"], ["bar", "1 bar"], ["two", "2 bars"]];
 
@@ -801,11 +859,15 @@ function renderControls() {
   $("sig-feel").textContent = describeMeter(meterOf());
   if (!playing) renderDots(-1);
   for (const b of $("lengths").children) b.setAttribute("aria-checked", b.dataset.v === state.length ? "true" : "false"), b.setAttribute("aria-pressed", b.dataset.v === state.length);
-  const preset = PRESETS.findIndex((p) => p.chords === state.chords);
+  let preset = -1, shift = 0;
+  for (let i = 0; i < PRESETS.length && preset < 0; i++) {
+    const k = transpositionOf(state.chords, PRESETS[i].chords);
+    if (k >= 0) { preset = i; shift = k; }
+  }
   const select = $("presets");
-  // The chosen example shows the tempo and meter it's playing at now; the rest show their own.
+  // The chosen example shows the key, tempo and meter it's playing in now; the rest show their own.
   PRESETS.forEach((p, i) => {
-    const text = i === preset ? presetLabel(p, state.sig, state.bpm) : presetLabel(p, p.sig, p.bpm);
+    const text = i === preset ? presetLabel(p, state.sig, state.bpm, shift) : presetLabel(p, p.sig, p.bpm);
     if (select.options[i + 1].text !== text) select.options[i + 1].text = text;
   });
   select.value = preset < 0 ? "" : String(preset);
@@ -984,6 +1046,15 @@ function setTempo(bpm) {
 
 function bind() {
   $("chords").addEventListener("input", (e) => { state.chords = e.target.value; onChordsChanged(); });
+  const transpose = (semitones) => {
+    const next = transposeText(state.chords, semitones);
+    if (next === state.chords) return;
+    state.chords = next;
+    $("chords").value = next;
+    onChordsChanged();
+  };
+  $("transpose-down").addEventListener("click", () => transpose(-1));
+  $("transpose-up").addEventListener("click", () => transpose(1));
   $("presets").addEventListener("change", (e) => {
     const p = PRESETS[e.target.value]; if (!p) return;
     const sigChanged = p.sig !== state.sig;

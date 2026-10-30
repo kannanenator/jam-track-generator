@@ -64,8 +64,9 @@ generate("Am F C G", "jam.mid", instruments=["guitar", "bass", "drums"],
 ## Web app
 
 `web/index.html` is the same generator as a single page that runs in a
-browser, phones included: type chords, set the tempo and time signature (any
-`N/D`, or a grouping like `3+2+2/8`), mix the band and play along. It
+browser, phones included: type chords or pick an example, transpose them a
+half step at a time, set the tempo and time signature (any `N/D`, or a
+grouping like `3+2+2/8`), mix the band and play along. It
 synthesizes the instruments in the browser and can save the MIDI file. Open
 the file directly or serve the `web/` folder from any static host, such as
 GitHub Pages.
