@@ -76,7 +76,9 @@ section { background: var(--surface); border: 1px solid var(--line); border-radi
   background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
 }
 #chords:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.presets { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.preset-field { display: grid; gap: 6px; }
+.preset-field label { color: var(--muted); font-size: 14px; }
+#presets { width: 100%; min-width: 0; }
 .chip {
   flex: none; font: 500 15px/1 var(--font-body); color: var(--ink);
   background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 9px 13px; cursor: pointer;
@@ -142,7 +144,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-select { font: 500 15px var(--font-body); padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+/* 16px keeps iOS Safari from zooming the page when a dropdown is tapped. */
+select { font: 500 16px var(--font-body); padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 
 /* Transport */
 body::after {
@@ -190,7 +193,10 @@ body::after {
       <label class="label" id="chords-label" for="chords">Chords</label>
       <textarea id="chords" rows="2" spellcheck="false" autocapitalize="characters" autocomplete="off">C G Am F</textarea>
     </div>
-    <div class="presets" id="presets" role="group" aria-label="Example progressions"></div>
+    <div class="preset-field">
+      <label for="presets">Start from an example</label>
+      <select id="presets"></select>
+    </div>
     <div class="chart" id="chart" aria-live="off"></div>
     <p class="error" id="chord-error" hidden></p>
     <p class="hint">Separate chords with spaces or bar lines (|). Triads, 7ths, 9ths, sus, dim, aug and slash chords like C/E all work.</p>
@@ -677,9 +683,9 @@ const PRESETS = [
   { name: "Jazz ii–V–I", chords: "Dm7 | G7 | Cmaj7 | A7", sig: "4/4", bpm: 126 },
   { name: "Minor groove", chords: "Am7 | Fmaj7 | Dm7 | E7", sig: "4/4", bpm: 88 },
   { name: "Waltz in D", chords: "D G A7 D", sig: "3/4", bpm: 150 },
-  { name: "6/8 ballad", chords: "Em C G D", sig: "6/8", bpm: 66 },
-  { name: "5/4 vamp", chords: "Ebm7 Bbm7", sig: "5/4", bpm: 168 },
-  { name: "Balkan 3+2+2/8", chords: "Dm Dm Gm A7", sig: "3+2+2/8", bpm: 150 },
+  { name: "Slow ballad", chords: "Em C G D", sig: "6/8", bpm: 66 },
+  { name: "Odd-meter vamp", chords: "Ebm7 Bbm7", sig: "5/4", bpm: 168 },
+  { name: "Balkan dance", chords: "Dm Dm Gm A7", sig: "3+2+2/8", bpm: 150 },
 ];
 const SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "12/8", "5/4", "7/8"];
 const LENGTHS = [["half", "½ bar"], ["bar", "1 bar"], ["two", "2 bars"]];
@@ -774,7 +780,8 @@ function renderControls() {
   $("sig-feel").textContent = describeMeter(meterOf());
   if (!playing) renderDots(-1);
   for (const b of $("lengths").children) b.setAttribute("aria-checked", b.dataset.v === state.length ? "true" : "false"), b.setAttribute("aria-pressed", b.dataset.v === state.length);
-  for (const b of $("presets").children) b.setAttribute("aria-pressed", PRESETS[b.dataset.i].chords === state.chords && PRESETS[b.dataset.i].sig === state.sig);
+  const preset = PRESETS.findIndex((p) => p.chords === state.chords && p.sig === state.sig);
+  $("presets").value = preset < 0 ? "" : String(preset);
   for (const inst of INSTRUMENTS) {
     const row = $("row-" + inst.name);
     row.classList.toggle("off", !state.enabled[inst.name]);
@@ -785,7 +792,8 @@ function renderControls() {
 
 function buildUI() {
   $("chords").value = state.chords;
-  $("presets").innerHTML = PRESETS.map((p, i) => `<button type="button" class="chip" data-i="${i}">${p.name}</button>`).join("");
+  $("presets").innerHTML = `<option value="" disabled>Choose an example…</option>` +
+    PRESETS.map((p, i) => `<option value="${i}">${p.name} · ${p.sig} · ${p.bpm} bpm</option>`).join("");
   $("signatures").innerHTML = SIGNATURES.map((s) => `<button type="button" role="radio" class="chip" data-v="${s}">${s}</button>`).join("");
   $("lengths").innerHTML = LENGTHS.map(([v, l]) => `<button type="button" role="radio" class="chip" data-v="${v}" style="font-family: var(--font-body); font-size: 15px">${l}</button>`).join("");
   $("band").innerHTML = INSTRUMENTS.map((inst) => `
@@ -949,9 +957,8 @@ function setTempo(bpm) {
 
 function bind() {
   $("chords").addEventListener("input", (e) => { state.chords = e.target.value; onChordsChanged(); });
-  $("presets").addEventListener("click", (e) => {
-    const b = e.target.closest(".chip"); if (!b) return;
-    const p = PRESETS[b.dataset.i];
+  $("presets").addEventListener("change", (e) => {
+    const p = PRESETS[e.target.value]; if (!p) return;
     const sigChanged = p.sig !== state.sig;
     Object.assign(state, { chords: p.chords, sig: p.sig, length: "bar" });
     $("chords").value = p.chords;
