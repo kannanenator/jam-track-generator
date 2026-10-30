@@ -79,6 +79,13 @@ section { background: var(--surface); border: 1px solid var(--line); border-radi
 .preset-field { display: grid; gap: 6px; }
 .preset-field label { color: var(--muted); font-size: 14px; }
 #presets { width: 100%; min-width: 0; }
+.select-wrap { position: relative; display: inline-block; max-width: 100%; }
+.preset-field .select-wrap { display: block; }
+.select-wrap::after {
+  content: ""; position: absolute; right: 18px; top: 50%; width: 8px; height: 8px; pointer-events: none;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+  transform: translateY(-70%) rotate(45deg);
+}
 .chip {
   flex: none; font: 500 15px/1 var(--font-body); color: var(--ink);
   background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 9px 13px; cursor: pointer;
@@ -145,7 +152,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 
 .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 /* 16px keeps iOS Safari from zooming the page when a dropdown is tapped. */
-select { font: 500 16px var(--font-body); padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+select {
+  -webkit-appearance: none; appearance: none; text-overflow: ellipsis;
+  font: 500 16px var(--font-body); padding: 10px 44px 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 
 /* Transport */
 body::after {
@@ -195,7 +204,7 @@ body::after {
     </div>
     <div class="preset-field">
       <label for="presets">Start from an example</label>
-      <select id="presets"></select>
+      <div class="select-wrap"><select id="presets"></select></div>
     </div>
     <div class="chart" id="chart" aria-live="off"></div>
     <p class="error" id="chord-error" hidden></p>
@@ -244,12 +253,12 @@ body::after {
     <h2 class="label" id="save-label">MIDI file</h2>
     <p class="hint" id="save-note" style="color: var(--ink)">Save this track for GarageBand, Logic or any DAW. Each instrument gets its own track. The file comes zipped; open the zip to get the .mid.</p>
     <div class="row">
-      <select id="repeats" aria-label="Times through the progression">
+      <div class="select-wrap"><select id="repeats" aria-label="Times through the progression">
         <option value="2">2 times through</option>
         <option value="4" selected>4 times through</option>
         <option value="8">8 times through</option>
         <option value="16">16 times through</option>
-      </select>
+      </select></div>
       <button class="btn primary" id="save" type="button">Save MIDI</button>
     </div>
     <p class="hint" id="save-status" hidden></p>
@@ -690,16 +699,27 @@ const PRESETS = [
 const SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "12/8", "5/4", "7/8"];
 const LENGTHS = [["half", "½ bar"], ["bar", "1 bar"], ["two", "2 bars"]];
 
+// Every visit opens on a random example, ready to play.
+const START = PRESETS[Math.floor(Math.random() * PRESETS.length)];
 const state = {
-  chords: "C G Am F", sig: "4/4", bpm: 96, length: "bar", countIn: true, repeats: 4,
+  chords: START.chords, sig: START.sig, bpm: START.bpm, length: "bar", countIn: true, repeats: 4,
   enabled: { piano: true, guitar: true, strings: true, bass: true, drums: true },
   levels: { piano: 80, guitar: 70, strings: 60, bass: 80, drums: 75 },
 };
 try {
   const saved = JSON.parse(localStorage.getItem("jam-track-settings") || "null");
-  if (saved && typeof saved === "object") Object.assign(state, saved, { enabled: { ...state.enabled, ...saved.enabled }, levels: { ...state.levels, ...saved.levels } });
+  // Remember how the band is set up, not the song.
+  if (saved && typeof saved === "object") {
+    if (typeof saved.countIn === "boolean") state.countIn = saved.countIn;
+    if ([2, 4, 8, 16].includes(saved.repeats)) state.repeats = saved.repeats;
+    Object.assign(state.enabled, saved.enabled);
+    Object.assign(state.levels, saved.levels);
+  }
 } catch (e) { /* storage unavailable */ }
-function persist() { try { localStorage.setItem("jam-track-settings", JSON.stringify(state)); } catch (e) { /* ignore */ } }
+function persist() {
+  const { countIn, repeats, enabled, levels } = state;
+  try { localStorage.setItem("jam-track-settings", JSON.stringify({ countIn, repeats, enabled, levels })); } catch (e) { /* ignore */ }
+}
 
 let parsed = { chords: [], errors: [], tokens: [] };
 let lastGood = [];
@@ -780,7 +800,7 @@ function renderControls() {
   $("sig-feel").textContent = describeMeter(meterOf());
   if (!playing) renderDots(-1);
   for (const b of $("lengths").children) b.setAttribute("aria-checked", b.dataset.v === state.length ? "true" : "false"), b.setAttribute("aria-pressed", b.dataset.v === state.length);
-  const preset = PRESETS.findIndex((p) => p.chords === state.chords && p.sig === state.sig);
+  const preset = PRESETS.findIndex((p) => p.chords === state.chords);
   $("presets").value = preset < 0 ? "" : String(preset);
   for (const inst of INSTRUMENTS) {
     const row = $("row-" + inst.name);
@@ -792,7 +812,7 @@ function renderControls() {
 
 function buildUI() {
   $("chords").value = state.chords;
-  $("presets").innerHTML = `<option value="" disabled>Choose an example…</option>` +
+  $("presets").innerHTML = `<option value="" disabled>Your own chords</option>` +
     PRESETS.map((p, i) => `<option value="${i}">${p.name} · ${p.sig} · ${p.bpm} bpm</option>`).join("");
   $("signatures").innerHTML = SIGNATURES.map((s) => `<button type="button" role="radio" class="chip" data-v="${s}">${s}</button>`).join("");
   $("lengths").innerHTML = LENGTHS.map(([v, l]) => `<button type="button" role="radio" class="chip" data-v="${v}" style="font-family: var(--font-body); font-size: 15px">${l}</button>`).join("");
