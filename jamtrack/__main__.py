@@ -21,7 +21,9 @@ def main(argv=None):
     parser.add_argument("-b", "--bpm", "--tempo", type=float, default=100,
                         help="tempo in quarter notes per minute (default: %(default)s)")
     parser.add_argument("-t", "--time-signature", default="4/4",
-                        help="e.g. 4/4, 3/4, 6/8, 5/4 (default: %(default)s)")
+                        help="any N/D with D of 1, 2, 4, 8, 16 or 32, e.g. 4/4, 6/8, "
+                             "11/8, 13/16; spell out the beat grouping with + to "
+                             "move the accents, e.g. 3+2+2/8 (default: %(default)s)")
     parser.add_argument("--beats-per-chord", type=int,
                         help="beats each chord lasts (default: one bar)")
     parser.add_argument("-r", "--repeats", type=int, default=4,

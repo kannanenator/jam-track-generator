@@ -78,16 +78,15 @@ def piano_pattern(chord, beats, meter, bar_offset):
 
 
 def guitar_pattern(chord, beats, meter, bar_offset):
-    """Strum down on every beat; in simple meters, also up on the off-beat "and"s."""
+    """Strum down on every beat, and up on the off-beat "and"s where the meter has them."""
     root = _lowest_at_or_above(chord.bass, 40)
     shape = [root] + [p for p in voice_chord(chord, center=60, size=5) if p > root]
-    spread = 0.03 * meter.denominator / 4  # strum speed, in beats
     notes = []
     for beat in range(beats):
         position = (bar_offset + beat) % meter.numerator
         _, group_start, _ = meter.group_at(position)
         strums = [(beat, "down")]
-        if not meter.compound and position != group_start:
+        if meter.offbeats and position != group_start:
             strums.append((beat + 0.5, "up"))
         for start, direction in strums:
             strings = shape if direction == "down" else list(reversed(shape[1:]))
@@ -95,7 +94,10 @@ def guitar_pattern(chord, beats, meter, bar_offset):
                 velocity, length = 60, 0.5
             else:
                 velocity = 88 if position == 0 else 78 if position == group_start else 70
-                length = 1 if meter.compound or position == group_start else 0.5
+                length = 0.5 if len(strums) > 1 else 1
+            # About 30ms per string at 120bpm, squeezed so the strum fits its slot
+            # when the beat unit is short (16ths, 32nds).
+            spread = min(0.03 * meter.denominator / 4, length / 2 / len(strings))
             for i, pitch in enumerate(strings):
                 onset = start + i * spread
                 notes.append(Note(onset, start + length - onset, pitch, velocity))
@@ -123,9 +125,10 @@ def bass_pattern(chord, beats, meter, bar_offset):
 def drums_pattern(chord, beats, meter, bar_offset):
     """Kick on each pulse with a snare backbeat, plus a steady hi-hat.
 
-    Simple meters (4/4, 3/4): kick on each group's first beat, snare on the
-    rest, hi-hat in eighths. Compound meters (6/8, 12/8): kick and snare
-    alternate on the dotted-quarter pulses, hi-hat on every beat.
+    Simple and additive meters (4/4, 3/4, 3+2+2/8): kick on each group's first
+    beat, snare on the rest. Compound meters (6/8, 12/8): kick and snare
+    alternate on the dotted-quarter pulses. The hi-hat plays every beat, plus
+    the "and"s where the meter has off-beats.
     """
     notes = []
     for beat in range(beats):
@@ -138,7 +141,7 @@ def drums_pattern(chord, beats, meter, bar_offset):
                 notes.append(Note(beat, 0.25, KICK, 105 if position == 0 else 95))
         elif not meter.compound:
             notes.append(Note(beat, 0.25, SNARE, 95))
-        hats = [beat] if meter.compound else [beat, beat + 0.5]
+        hats = [beat, beat + 0.5] if meter.offbeats else [beat]
         for hat in hats:
             on_beat = hat == beat
             notes.append(Note(hat, 0.25, CLOSED_HAT, 75 if on_beat else 55))

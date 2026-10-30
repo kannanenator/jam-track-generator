@@ -43,9 +43,36 @@ class VoicingTests(unittest.TestCase):
 class MeterTests(unittest.TestCase):
     def test_parse(self):
         self.assertEqual(parse_time_signature("6/8"), Meter(6, 8))
-        for bad in ["4", "4/3", "0/4", "x/4", "4/4/4"]:
-            with self.assertRaises(ValueError):
+        self.assertEqual(parse_time_signature("13/16"), Meter(13, 16))
+        self.assertEqual(parse_time_signature(" 3 + 2 + 2 / 8 "), Meter(7, 8, (3, 2, 2)))
+        for bad in ["4", "4/3", "0/4", "x/4", "4/4/4", "65/8", "3+0/8", "3+/8", "/8"]:
+            with self.assertRaises(ValueError, msg=bad):
                 parse_time_signature(bad)
+
+    def test_grouping_must_add_up(self):
+        with self.assertRaises(ValueError):
+            Meter(7, 8, (3, 3))
+
+    def test_additive_groupings(self):
+        meter = parse_time_signature("3+2+2/8")
+        self.assertEqual(meter.groups, [(0, 3), (3, 2), (5, 2)])
+        self.assertFalse(meter.compound)
+        self.assertEqual(str(meter), "3+2+2/8")
+        self.assertEqual(str(parse_time_signature("2+2+3/8")), "7/8")
+        # Spelling out a compound grouping is the same as the plain signature.
+        self.assertTrue(parse_time_signature("3+3+3/8").compound)
+
+    def test_long_and_odd_meters(self):
+        self.assertEqual(Meter(11, 8).groups, [(0, 2), (2, 2), (4, 2), (6, 2), (8, 3)])
+        self.assertEqual(Meter(15, 16).grouping, (3, 3, 3, 3, 3))
+        self.assertEqual(Meter(9, 4).grouping, (2, 2, 2, 3))
+        self.assertEqual(Meter(2, 1).grouping, (2,))
+
+    def test_offbeats(self):
+        self.assertTrue(Meter(4, 4).offbeats)
+        self.assertTrue(Meter(7, 8).offbeats)
+        self.assertFalse(Meter(6, 8).offbeats)
+        self.assertFalse(Meter(13, 16).offbeats)
 
     def test_groups(self):
         self.assertEqual(Meter(4, 4).groups, [(0, 2), (2, 2)])
@@ -146,8 +173,28 @@ class GenerateTests(unittest.TestCase):
         track = mido.MidiFile(self.path).tracks[1]
         self.assertTrue(all(m.channel == DRUM_CHANNEL for m in track if m.type == "note_on"))
 
+    def test_additive_meter_accents_follow_grouping(self):
+        generate("C", self.path, instruments=["drums"], time_signature="3+2+2/8",
+                 repeats=1, humanize=False)
+        hits = _drum_hits(self.path)
+        # Eighth-note beats are half a quarter note: kicks on beats 1, 4 and 6.
+        self.assertEqual(hits[KICK], [0, 1.5, 2.5])
+        self.assertEqual(hits[SNARE], [0.5, 1, 2, 3])
+        midi = mido.MidiFile(self.path)
+        sig = next(m for m in midi.tracks[0] if m.type == "time_signature")
+        self.assertEqual((sig.numerator, sig.denominator), (7, 8))
+
+    def test_strums_fit_short_beats(self):
+        from jamtrack.instruments import guitar_pattern
+        for sig in ["4/4", "7/8", "13/16", "5/32", "3/2", "2/1"]:
+            meter = parse_time_signature(sig)
+            notes = guitar_pattern(parse_chord("Cmaj9"), meter.numerator, meter, 0)
+            self.assertTrue(all(n.duration > 0 for n in notes), sig)
+            self.assertTrue(all(n.start < meter.numerator for n in notes), sig)
+
     def test_every_instrument_in_odd_meters(self):
-        for sig in ["3/4", "5/4", "6/8", "7/8", "12/8", "2/2"]:
+        for sig in ["3/4", "5/4", "6/8", "7/8", "12/8", "2/2", "11/8", "13/16",
+                    "9/4", "5/32", "4/1", "3+3+2/8", "2+2+2+3/8", "1/4"]:
             generate("Am7 D7/F# G", self.path, time_signature=sig,
                      beats_per_chord=5, repeats=2, seed=0)
             for track in mido.MidiFile(self.path).tracks[1:]:
