@@ -76,9 +76,9 @@ section { background: var(--surface); border: 1px solid var(--line); border-radi
   background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
 }
 #chords:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.transpose { display: flex; align-items: center; gap: 8px; }
-.transpose span { flex: 1; color: var(--muted); font-size: 14px; }
-.transpose .btn { font-variant-numeric: tabular-nums; min-width: 92px; }
+.chords-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.transpose { display: flex; gap: 6px; }
+.transpose .btn { padding: 9px 12px; font-size: 14px; }
 .preset-field { display: grid; gap: 6px; }
 .preset-field label { color: var(--muted); font-size: 14px; }
 #presets { width: 100%; min-width: 0; }
@@ -202,13 +202,14 @@ body::after {
 
   <section aria-labelledby="chords-label">
     <div class="field">
-      <label class="label" id="chords-label" for="chords">Chords</label>
+      <div class="chords-head">
+        <label class="label" id="chords-label" for="chords">Chords</label>
+        <div class="transpose" role="group" aria-label="Transpose">
+          <button class="btn" id="transpose-down" type="button" aria-label="Transpose down a half step">− ½ step</button>
+          <button class="btn" id="transpose-up" type="button" aria-label="Transpose up a half step">+ ½ step</button>
+        </div>
+      </div>
       <textarea id="chords" rows="2" spellcheck="false" autocapitalize="characters" autocomplete="off">C G Am F</textarea>
-    </div>
-    <div class="transpose" role="group" aria-labelledby="transpose-label">
-      <span id="transpose-label">Transpose</span>
-      <button class="btn" id="transpose-down" type="button" aria-label="Transpose down a half step">− ½ step</button>
-      <button class="btn" id="transpose-up" type="button" aria-label="Transpose up a half step">+ ½ step</button>
     </div>
     <div class="preset-field">
       <label for="presets">Start from an example</label>
