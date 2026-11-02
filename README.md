@@ -66,14 +66,50 @@ generate("Am F C G", "jam.mid", instruments=["guitar", "bass", "drums"],
 `web/index.html` is the same generator as a single page that runs in a
 browser, phones included: type chords or pick an example, transpose them a
 half step at a time, set the tempo and time signature (any `N/D`, or a
-grouping like `3+2+2/8`), mix the band and play along. It
-synthesizes the instruments in the browser and can save the MIDI file. Open
-the file directly or serve the `web/` folder from any static host, such as
-GitHub Pages.
+grouping like `3+2+2/8`), mix the band and play along. It synthesizes the
+instruments in the browser and can save the MIDI file. Open the file directly
+or serve the `web/` folder from any static host, such as GitHub Pages.
+
+### Sections and play order (Pro)
+
+A song can have up to 12 named sections (A, B, Verse, Chorus, Intro...), each
+with its own chords and, optionally, its own tempo. The play order lists
+section names, like `A A B B` or `Verse Chorus x2 Bridge Chorus`; left empty,
+each section plays once in order. Playback follows the order and each
+section's tempo, the chart highlights the section and chord that's playing,
+and the saved MIDI file carries a tempo change and a marker at each section.
+
+### Pro and the test-mode paywall
+
+Free: one section, everything else above. Pro: more than one section, and
+saving jams (title, sections, tempo, time signature and band mix) to open
+again later.
+
+Billing is scaffolding for now. The page talks to billing only through
+`createTestBilling`'s three methods (`status`, `subscribe`, `cancel`) in the
+`<script id="billing">` block. In test mode, checkout accepts only the
+standard test cards (`4242 4242 4242 4242`, any future date, any CVC), so a
+real card can't be entered; card details are never stored or sent anywhere,
+and only the last four digits are kept on the account.
+
+To go live, replace `createTestBilling` with an implementation backed by a
+payment provider (Stripe Checkout, for example). That needs a small server:
+it creates the checkout session and, from the provider's webhooks, records who
+is Pro. The page can only ask the server; anything kept in the browser can be
+edited, so the client-side check is not the real paywall.
+
+Saved jams and the account go through one storage interface (`openStore`).
+Published as a Claude artifact, they live in each signed-in viewer's private
+artifact storage. Opened anywhere else, the browser's localStorage stands in,
+so jams stay on that one device until there's a server to keep them.
+
+### Keeping the page and the package in step
 
 The page carries a JavaScript copy of the chord parser, meters and instrument
 patterns. `tests/test_web_parity.py` runs it in Node and checks that it plays
 exactly the same notes as the Python package, so change both together.
+`tests/test_web_songs.py` covers sections, play order, MIDI tempo changes and
+the test-mode checkout.
 
 ## Tests
 

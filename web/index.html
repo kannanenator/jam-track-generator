@@ -70,12 +70,12 @@ section { background: var(--surface); border: 1px solid var(--line); border-radi
 .field { display: grid; gap: 8px; min-width: 0; }
 
 /* Chord input + chart */
-#chords {
+.sec-chords {
   width: 100%; resize: vertical; min-height: 56px;
   font: 600 22px/1.3 var(--font-display); letter-spacing: 0.02em;
   background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
 }
-#chords:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sec-chords:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .chords-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .transpose { display: flex; gap: 6px; }
 .transpose .btn { padding: 9px 12px; font-size: 14px; }
@@ -95,7 +95,7 @@ section { background: var(--surface); border: 1px solid var(--line); border-radi
 }
 .chip:hover { border-color: var(--muted); }
 .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
-button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .chart { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-left: 2px solid var(--ink); }
 .cell {
@@ -190,32 +190,137 @@ body::after {
 .play svg { width: 26px; height: 26px; fill: currentColor; }
 .play:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 
+/* Header, account and Pro */
+.brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pro-btn { padding: 9px 14px; font-size: 14px; border-color: var(--accent); color: var(--accent-ink); background: transparent; }
+.pro-btn.on { background: var(--accent); color: var(--on-accent); }
+.pro-tag {
+  display: inline-block; margin-left: 7px; padding: 3px 5px 2px; border-radius: 4px; vertical-align: 1px;
+  background: var(--accent); color: var(--on-accent);
+  font: 700 11px/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+/* Song: title, saved jams */
+.title-row { display: flex; gap: 8px; }
+#title {
+  flex: 1; min-width: 0; font: 600 20px/1.2 var(--font-display); letter-spacing: 0.02em;
+  padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+}
+.library-row { display: flex; gap: 8px; }
+.library-row .select-wrap { flex: 1; min-width: 0; }
+.library-row select { width: 100%; }
+#jam-status { text-align: right; min-width: 0; }
+
+/* Sections */
+.sections { display: grid; gap: 14px; }
+.sec { display: grid; gap: 10px; min-width: 0; }
+.sec.multi { border: 1px solid var(--line); border-radius: 8px; padding: 12px; transition: border-color 120ms; }
+.sec.multi.on { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.sec-head { display: flex; align-items: center; gap: 8px; }
+.sec-name {
+  width: 9ch; min-width: 0; font: 700 18px/1 var(--font-display); letter-spacing: 0.04em;
+  padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+}
+.sec-tempo { display: flex; align-items: center; gap: 6px; margin-left: auto; color: var(--muted); font-size: 14px; }
+.sec-bpm {
+  width: 5.5ch; font: 600 16px/1 var(--font-body); font-variant-numeric: tabular-nums; text-align: right;
+  padding: 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  -moz-appearance: textfield; appearance: textfield;
+}
+.sec-bpm::-webkit-inner-spin-button, .sec-bpm::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.sec-name[aria-invalid="true"], #form[aria-invalid="true"], .dialog-body input[aria-invalid="true"] { border-color: var(--bad); }
+.icon-btn {
+  width: 36px; height: 36px; flex: none; border-radius: 8px; border: 1px solid var(--line); background: transparent;
+  color: var(--muted); display: grid; place-items: center; cursor: pointer; font: 600 13px/1 var(--font-body);
+}
+.icon-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+.icon-btn.armed { width: auto; padding: 0 10px; color: var(--bad); border-color: var(--bad); }
+.cell.empty { grid-column: 1 / -1; color: var(--muted); font: 500 15px/1.3 var(--font-body); white-space: normal; }
+#form {
+  width: 100%; font: 600 18px/1.2 var(--font-display); letter-spacing: 0.03em;
+  padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+}
+
+/* Dialogs: a sheet from the bottom on phones, centred on wider screens */
+dialog {
+  width: min(560px, 100%); max-width: 100%; max-height: calc(100% - 24px); overflow: auto;
+  margin: auto auto 0; padding: 0; border: 0; border-radius: 16px 16px 0 0;
+  background: var(--surface); color: var(--ink); box-shadow: 0 -8px 40px rgb(0 0 0 / 0.25);
+}
+dialog::backdrop { background: rgb(10 12 15 / 0.5); }
+@media (min-width: 600px) { dialog { margin: auto; border-radius: 16px; } }
+.dialog-body {
+  display: grid; gap: 14px; margin: 0;
+  padding-block: 22px calc(20px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+.dialog-title { margin: 0; font: 700 28px/1 var(--font-display); letter-spacing: 0.05em; text-transform: uppercase; outline: none; }
+.dialog-reason { margin: 0; color: var(--accent-ink); font-weight: 600; }
+.price { margin: 0; }
+.price strong { font: 700 26px/1 var(--font-display); }
+.perks { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.test-banner { border: 1px dashed var(--accent); border-radius: 8px; padding: 10px 12px; background: var(--accent-soft); font-size: 14px; }
+.test-banner code { font: 600 14px ui-monospace, "SF Mono", Menlo, monospace; white-space: nowrap; }
+.dialog-body .field label { color: var(--muted); font-size: 14px; }
+.dialog-body input[type="text"] {
+  width: 100%; font: 500 16px var(--font-body); font-variant-numeric: tabular-nums;
+  padding: 11px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dialog-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.btn.accent { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.danger { background: transparent; border-color: var(--bad); color: var(--bad); }
+
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 @media (max-width: 380px) { .cell { font-size: 20px; padding: 8px 6px; } .bpm { font-size: 38px; } }
 </style>
 
 <div class="app">
   <header>
-    <h1 class="brand">Jam <span>Track</span></h1>
+    <div class="brand-row">
+      <h1 class="brand">Jam <span>Track</span></h1>
+      <button class="btn pro-btn" id="account" type="button" disabled>Go Pro</button>
+    </div>
     <p class="tagline">Type a progression, pick a feel, and play along with the band.</p>
+    <p class="hint" id="pro-status" aria-live="polite" hidden></p>
   </header>
 
-  <section aria-labelledby="chords-label">
-    <div class="field">
-      <div class="chords-head">
-        <label class="label" id="chords-label" for="chords">Chords</label>
-        <div class="transpose" role="group" aria-label="Transpose">
-          <button class="btn" id="transpose-down" type="button" aria-label="Transpose down a half step">− ½ step</button>
-          <button class="btn" id="transpose-up" type="button" aria-label="Transpose up a half step">+ ½ step</button>
-        </div>
-      </div>
-      <textarea id="chords" rows="2" spellcheck="false" autocapitalize="characters" autocomplete="off">C G Am F</textarea>
+  <section aria-labelledby="song-label">
+    <div class="chords-head">
+      <label class="label" id="song-label" for="title">Song</label>
+      <span class="hint" id="jam-status" aria-live="polite"></span>
     </div>
+    <div class="title-row">
+      <input id="title" type="text" maxlength="80" placeholder="Untitled jam" autocomplete="off" aria-label="Song title">
+      <button class="btn primary" id="save-jam" type="button">Save<span class="pro-tag">Pro</span></button>
+    </div>
+    <div class="library-row" id="library-row" hidden>
+      <div class="select-wrap"><select id="library" aria-label="Your saved jams"></select></div>
+      <button class="btn" id="delete-jam" type="button" hidden>Delete</button>
+    </div>
+    <p class="hint" id="library-hint"></p>
     <div class="preset-field">
       <label for="presets">Start from an example</label>
       <div class="select-wrap"><select id="presets"></select></div>
     </div>
-    <div class="chart" id="chart" aria-live="off"></div>
+  </section>
+
+  <section aria-labelledby="chords-label">
+    <div class="chords-head">
+      <label class="label" id="chords-label" for="chords">Chords</label>
+      <div class="transpose" role="group" aria-label="Transpose">
+        <button class="btn" id="transpose-down" type="button" aria-label="Transpose down a half step">− ½ step</button>
+        <button class="btn" id="transpose-up" type="button" aria-label="Transpose up a half step">+ ½ step</button>
+      </div>
+    </div>
+    <div class="sections" id="sections"></div>
+    <div><button class="btn" id="add-section" type="button">+ Add section<span class="pro-tag">Pro</span></button></div>
+    <div class="field" id="form-field" hidden>
+      <label class="label" for="form">Play order</label>
+      <input id="form" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="form-summary">
+      <p class="hint" id="form-summary"></p>
+    </div>
     <p class="error" id="chord-error" hidden></p>
     <p class="hint">Separate chords with spaces or bar lines (|). Triads, 7ths, 9ths, sus, dim, aug and slash chords like C/E all work.</p>
   </section>
@@ -262,7 +367,8 @@ body::after {
     <h2 class="label" id="save-label">MIDI file</h2>
     <p class="hint" id="save-note" style="color: var(--ink)">Save this track for GarageBand, Logic or any DAW. Each instrument gets its own track. The file comes zipped; open the zip to get the .mid.</p>
     <div class="row">
-      <div class="select-wrap"><select id="repeats" aria-label="Times through the progression">
+      <div class="select-wrap"><select id="repeats" aria-label="Times through the song">
+        <option value="1">Once through</option>
         <option value="2">2 times through</option>
         <option value="4" selected>4 times through</option>
         <option value="8">8 times through</option>
@@ -287,6 +393,55 @@ body::after {
     </button>
   </div>
 </div>
+
+<dialog id="paywall" aria-labelledby="paywall-title">
+  <form class="dialog-body" id="checkout" novalidate>
+    <p class="dialog-reason" id="paywall-reason" hidden></p>
+    <h2 class="dialog-title" id="paywall-title" tabindex="-1" autofocus>Jam Track Pro</h2>
+    <p class="price"><strong id="plan-price">$4.99</strong> a month. Cancel anytime.</p>
+    <ul class="perks">
+      <li>Songs in sections, like verse and chorus or A and B parts, in any play order</li>
+      <li>A different tempo for any section</li>
+      <li>Save your jams and open them again whenever you like</li>
+    </ul>
+    <div class="test-banner" role="note"><strong>Test mode.</strong> No payment is taken and card details aren't kept. Use card <code>4242 4242 4242 4242</code> with any future date and any 3-digit CVC.</div>
+    <div class="field">
+      <label for="card-name">Name on card</label>
+      <input id="card-name" type="text" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="card-number">Card number</label>
+      <input id="card-number" type="text" inputmode="numeric" autocomplete="off" placeholder="4242 4242 4242 4242" maxlength="23">
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="card-exp">Expiry</label>
+        <input id="card-exp" type="text" inputmode="numeric" autocomplete="off" placeholder="MM/YY" maxlength="7">
+      </div>
+      <div class="field">
+        <label for="card-cvc">CVC</label>
+        <input id="card-cvc" type="text" inputmode="numeric" autocomplete="off" placeholder="123" maxlength="4">
+      </div>
+    </div>
+    <p class="error" id="checkout-error" role="alert" hidden></p>
+    <div class="dialog-actions">
+      <button class="btn" id="paywall-cancel" type="button">Not now</button>
+      <button class="btn accent" id="checkout-submit" type="submit">Start Pro</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="account-dialog" aria-labelledby="account-title">
+  <div class="dialog-body">
+    <h2 class="dialog-title" id="account-title" tabindex="-1" autofocus>Jam Track Pro</h2>
+    <p id="account-summary"></p>
+    <p class="hint">Test mode. Cancelling switches Pro off for this account; your saved jams are kept.</p>
+    <div class="dialog-actions">
+      <button class="btn danger" id="account-cancel" type="button">Cancel subscription</button>
+      <button class="btn primary" id="account-close" type="button">Done</button>
+    </div>
+  </div>
+</dialog>
 
 <script id="engine">
 // ---- Chord parsing (mirrors jamtrack/chords.py) ----
@@ -333,18 +488,21 @@ const FLAT_MINOR_KEYS = [2, 7, 0, 5, 10, 3];
 const isMinor = (chord) => chord.intervals[1] === 3;
 const usesFlats = (root, minor) => (minor ? FLAT_MINOR_KEYS : FLAT_MAJOR_KEYS).includes(root);
 
-// Move every chord in `text` by `semitones`, keeping spacing, bar lines and
-// anything that isn't a chord. Sharps or flats follow the new key, taken from
-// the first chord.
-function transposeText(text, semitones) {
-  let names = SHARP_NAMES;
+// Sharps or flats for `text` moved by `semitones`, from the key its first
+// chord lands in.
+function spellingFor(text, semitones) {
   for (const token of tokenize(text)) {
     try {
       const first = parseChord(token);
-      if (usesFlats(mod(first.root + semitones, 12), isMinor(first))) names = FLAT_NAMES;
-      break;
+      return usesFlats(mod(first.root + semitones, 12), isMinor(first)) ? FLAT_NAMES : SHARP_NAMES;
     } catch (e) { /* skip tokens that aren't chords */ }
   }
+  return SHARP_NAMES;
+}
+
+// Move every chord in `text` by `semitones`, keeping spacing, bar lines and
+// anything that isn't a chord. Pass `names` to spell several texts alike.
+function transposeText(text, semitones, names = spellingFor(text, semitones)) {
   return text.replace(/[^\s|]+/g, (token) => {
     let chord;
     try { chord = parseChord(token); } catch (e) { return token; }
@@ -531,21 +689,90 @@ const INSTRUMENTS = [
   { name: "drums", label: "Drums", desc: "Kick, snare backbeat, hi-hat", program: 0, channel: DRUM_CHANNEL, volume: 100 },
 ];
 
-// Every instrument's notes for `repeats` passes, with absolute beat times.
-function generateNotes(progression, meter, beatsPerChord, repeats, names) {
+// ---- Songs: sections and play order ----
+// A song is named sections of chords, each at the song tempo or its own,
+// played in the order its form lists them.
+const MAX_SECTIONS = 12;
+
+function sectionNameError(name) {
+  if (!name) return "Give it a name, like A, B or Chorus.";
+  if (!/^[A-Za-z0-9][A-Za-z0-9'_-]{0,15}$/.test(name))
+    return `“${name}” can't be a section name. Use letters and numbers, up to 16 characters, no spaces.`;
+  if (/^[x×]\d+$/i.test(name)) return `“${name}” reads as a repeat count. Pick another name.`;
+  return "";
+}
+
+// Section indexes in play order. `text` lists section names, separated by
+// spaces or commas, and "x2" after a name repeats it. Empty plays each
+// section once, in order. Names match without regard to case.
+function parseForm(text, names) {
+  const index = new Map(names.map((n, i) => [n.toLowerCase(), i]));
+  const tokens = String(text).split(/[\s,]+/).filter(Boolean);
+  if (!tokens.length) return names.map((_, i) => i);
+  const order = [];
+  for (const token of tokens) {
+    const repeat = /^[x×](\d+)$/i.exec(token);
+    if (repeat) {
+      if (!order.length) throw new Error(`Put a section name before “${token}”, like A x2.`);
+      const times = Number(repeat[1]);
+      if (times < 1 || times > 16) throw new Error("Repeat counts go from x1 to x16.");
+      for (let i = 1; i < times; i++) order.push(order[order.length - 1]);
+      continue;
+    }
+    if (!index.has(token.toLowerCase()))
+      throw new Error(`there's no section called “${token}”. The sections are ${names.filter(Boolean).join(", ")}.`);
+    order.push(index.get(token.toLowerCase()));
+  }
+  if (order.length > 256) throw new Error("That's more than 256 sections in a row. Try a shorter order.");
+  return order;
+}
+
+// The play order with section `from` renamed to `to`.
+function renameInForm(text, from, to) {
+  return String(text).replace(/[^\s,]+/g, (t) => (t.toLowerCase() === from.toLowerCase() ? to : t));
+}
+
+// The play order without section `name`, and without the repeat counts that followed it.
+function removeFromForm(text, name) {
   const out = [];
+  let dropped = false;
+  for (const token of String(text).split(/[\s,]+/).filter(Boolean)) {
+    if (token.toLowerCase() === name.toLowerCase()) { dropped = true; continue; }
+    if (dropped && /^[x×]\d+$/i.test(token)) continue;
+    dropped = false;
+    out.push(token);
+  }
+  return out.join(" ");
+}
+
+// Every instrument's notes for `parts` played in order, `repeats` times over.
+// A part is { name, chords, bpm }, with bpm null to follow the song tempo.
+// Also returns where each part (segments) and each chord (cells) falls, in beats.
+function generateSong(parts, meter, beatsPerChord, repeats, names) {
+  const notes = [], segments = [], cells = [];
   let beat = 0;
   for (let r = 0; r < repeats; r++) {
-    for (const chord of progression) {
-      for (const name of names) {
-        for (const n of PATTERNS[name](chord, beatsPerChord, meter, beat % meter.numerator)) {
-          out.push({ inst: name, start: beat + n.start, duration: n.duration, pitch: n.pitch, velocity: n.velocity });
+    parts.forEach((part, p) => {
+      const start = beat;
+      part.chords.forEach((chord, c) => {
+        for (const name of names) {
+          for (const n of PATTERNS[name](chord, beatsPerChord, meter, beat % meter.numerator)) {
+            notes.push({ inst: name, start: beat + n.start, duration: n.duration, pitch: n.pitch, velocity: n.velocity });
+          }
         }
-      }
-      beat += beatsPerChord;
-    }
+        cells.push({ start: beat, end: beat + beatsPerChord, part: p, chord: c });
+        beat += beatsPerChord;
+      });
+      segments.push({ start, end: beat, part: p, name: part.name || "", bpm: part.bpm || null });
+    });
   }
-  return { notes: out, beats: beat };
+  return { notes, beats: beat, segments, cells };
+}
+
+// Every instrument's notes for `repeats` passes of one progression.
+function generateNotes(progression, meter, beatsPerChord, repeats, names) {
+  const { notes, beats } = generateSong([{ name: "", chords: progression, bpm: null }], meter, beatsPerChord, repeats, names);
+  return { notes, beats };
 }
 
 // ---- MIDI file writer (same layout as jamtrack/generator.py) ----
@@ -570,15 +797,27 @@ function trackBytes(events) {
 }
 const textMeta = (kind, text) => [0xff, kind, ...varlen(text.length), ...[...text].map((c) => c.charCodeAt(0) & 0x7f)];
 
-function buildMidi({ progression, meter, beatsPerChord, repeats, bpm, names, humanize = true }) {
+// `parts` is a song's sections in play order (see generateSong); pass
+// `progression` instead for a plain chord list. Sections get a marker, and a
+// tempo change wherever the tempo moves.
+function buildMidi({ parts, progression, meter, beatsPerChord, repeats, bpm, names, humanize = true }) {
   const tpb = TICKS_PER_BEAT * meter.quartersPerBeat;
-  const micros = Math.round(60000000 / bpm);
-  const conductor = [
-    [0, 0, [0xff, 0x51, 3, (micros >> 16) & 255, (micros >> 8) & 255, micros & 255]],
-    [0, 0, [0xff, 0x58, 4, meter.numerator, Math.log2(meter.denominator), 24, 8]],
-  ];
+  parts = parts || [{ name: "", chords: progression, bpm: null }];
+  const song = generateSong(parts, meter, beatsPerChord, repeats, names);
+  const conductor = [[0, 0, [0xff, 0x58, 4, meter.numerator, Math.log2(meter.denominator), 24, 8]]];
+  let lastBpm = null;
+  for (const seg of song.segments) {
+    const tick = Math.round(seg.start * tpb);
+    const segBpm = seg.bpm || bpm;
+    if (segBpm !== lastBpm) {
+      const micros = Math.round(60000000 / segBpm);
+      conductor.push([tick, 0, [0xff, 0x51, 3, (micros >> 16) & 255, (micros >> 8) & 255, micros & 255]]);
+      lastBpm = segBpm;
+    }
+    if (seg.name) conductor.push([tick, 0, textMeta(0x06, seg.name)]);
+  }
   const tracks = [trackBytes(conductor)];
-  const { notes } = generateNotes(progression, meter, beatsPerChord, repeats, names);
+  const { notes } = song;
   for (const name of names) {
     const inst = INSTRUMENTS.find((i) => i.name === name);
     const ch = inst.channel;
@@ -602,6 +841,77 @@ function buildMidi({ progression, meter, beatsPerChord, repeats, bpm, names, hum
   return new Uint8Array(header.concat(...tracks));
 }
 </script>
+
+<script id="billing">
+// ---- Billing (test mode) ----
+// The rest of the page talks to billing only through createTestBilling's
+// three methods: status(), subscribe(details) and cancel(). Going live means
+// swapping in an implementation with the same methods, backed by a payment
+// provider. That needs a server: it creates the checkout session and, from
+// the provider's webhooks, decides who is Pro. Anything the browser stores
+// can be edited, so a flag kept here is never the real paywall.
+const PLAN = { id: "pro-monthly", name: "Jam Track Pro", price: "$4.99", period: "month" };
+
+// The payment industry's published test numbers. Test mode accepts only
+// these, so a real card can't be entered into a checkout that charges nothing.
+const TEST_CARDS = new Set(["4242424242424242", "4000056655665556", "5555555555554444", "378282246310005"]);
+
+function luhnValid(digits) {
+  let sum = 0;
+  for (let i = 0; i < digits.length; i++) {
+    let d = Number(digits[digits.length - 1 - i]);
+    if (i % 2) { d *= 2; if (d > 9) d -= 9; }
+    sum += d;
+  }
+  return sum % 10 === 0;
+}
+
+// Checks test checkout details. Returns { last4, brand } or throws an Error
+// whose `field` names the input to fix.
+function validateTestCard({ name, number, exp, cvc }, now = new Date()) {
+  const fail = (field, message) => { const e = new Error(message); e.field = field; throw e; };
+  if (!String(name || "").trim()) fail("card-name", "Enter the name on the card.");
+  const digits = String(number || "").replace(/[\s-]/g, "");
+  if (!/^\d{12,19}$/.test(digits)) fail("card-number", "Enter a card number. In test mode, use 4242 4242 4242 4242.");
+  if (!TEST_CARDS.has(digits)) {
+    fail("card-number", luhnValid(digits)
+      ? "This is test mode, so real cards don't work yet. Use 4242 4242 4242 4242."
+      : "That card number isn't valid. In test mode, use 4242 4242 4242 4242.");
+  }
+  const m = /^\s*(\d{1,2})\s*\/\s*(\d{2}|\d{4})\s*$/.exec(String(exp || ""));
+  if (!m || Number(m[1]) < 1 || Number(m[1]) > 12) fail("card-exp", "Enter the expiry date as MM/YY.");
+  const year = m[2].length === 2 ? 2000 + Number(m[2]) : Number(m[2]);
+  // A card works through the last day of its expiry month.
+  if (new Date(year, Number(m[1]), 1) <= now) fail("card-exp", "That date has passed. Use any future date.");
+  const cvcLength = digits[0] === "3" ? 4 : 3;
+  if (!new RegExp(`^\\d{${cvcLength}}$`).test(String(cvc || "").trim())) fail("card-cvc", `Enter the ${cvcLength}-digit security code.`);
+  const brand = { 3: "Amex", 4: "Visa", 5: "Mastercard" }[digits[0]] || "Card";
+  return { last4: digits.slice(-4), brand };
+}
+
+// `store` keeps the account record (see openStore).
+function createTestBilling(store, wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))) {
+  return {
+    mode: "test",
+    async status() {
+      const account = await store.getAccount();
+      return account && account.plan === PLAN.id && account.status === "active" ? account : null;
+    },
+    async subscribe(details) {
+      // Card details stop here: only the last four digits and brand are kept.
+      const card = validateTestCard(details);
+      await wait(600);
+      const account = { plan: PLAN.id, status: "active", since: Date.now(), last4: card.last4, brand: card.brand, test: true };
+      await store.setAccount(account);
+      return account;
+    },
+    async cancel() {
+      await store.setAccount({ plan: PLAN.id, status: "canceled", canceledAt: Date.now(), test: true });
+    },
+  };
+}
+</script>
+
 
 <script>
 // ---- Zip (store only) so the MIDI file can go through the save dialog ----
@@ -744,34 +1054,71 @@ const VOICES = {
   },
 };
 
-// ---- App state ----
-const PRESETS = [
-  { name: "Pop I–V–vi–IV", key: "C", chords: "C G Am F", sig: "4/4", bpm: 96 },
-  { name: "12-bar blues", key: "A", chords: "A7 D7 A7 A7 | D7 D7 A7 A7 | E7 D7 A7 E7", sig: "4/4", bpm: 112 },
-  { name: "Jazz ii–V–I", key: "C", chords: "Dm7 | G7 | Cmaj7 | A7", sig: "4/4", bpm: 126 },
-  { name: "Minor groove", key: "Am", chords: "Am7 | Fmaj7 | Dm7 | E7", sig: "4/4", bpm: 88 },
-  { name: "Waltz", key: "D", chords: "D G A7 D", sig: "3/4", bpm: 150 },
-  { name: "Slow ballad", key: "Em", chords: "Em C G D", sig: "6/8", bpm: 66 },
-  { name: "Minor vamp", key: "Ebm", chords: "Ebm7 Bbm7", sig: "5/4", bpm: 168 },
-  { name: "Balkan dance", key: "Dm", chords: "Dm Dm Gm A7", sig: "3+2+2/8", bpm: 150 },
+// ---- Examples ----
+const single = (name, key, chords, sig, bpm) =>
+  ({ name, key, sig, bpm, length: "bar", form: "", pro: false, sections: [{ name: "A", chords, bpm: null }] });
+const EXAMPLES = [
+  single("Pop I–V–vi–IV", "C", "C G Am F", "4/4", 96),
+  single("12-bar blues", "A", "A7 D7 A7 A7 | D7 D7 A7 A7 | E7 D7 A7 E7", "4/4", 112),
+  single("Jazz ii–V–I", "C", "Dm7 | G7 | Cmaj7 | A7", "4/4", 126),
+  single("Minor groove", "Am", "Am7 | Fmaj7 | Dm7 | E7", "4/4", 88),
+  single("Waltz", "D", "D G A7 D", "3/4", 150),
+  single("Slow ballad", "Em", "Em C G D", "6/8", 66),
+  single("Minor vamp", "Ebm", "Ebm7 Bbm7", "5/4", 168),
+  single("Balkan dance", "Dm", "Dm Dm Gm A7", "3+2+2/8", 150),
+  { name: "Fiddle tune", key: "D", sig: "4/4", bpm: 112, length: "bar", pro: true, form: "A A B B", sections: [
+    { name: "A", chords: "D G D A | D G A D", bpm: null },
+    { name: "B", chords: "Bm G D A | Bm G A D", bpm: null }] },
+  { name: "Verse, chorus, bridge", key: "C", sig: "4/4", bpm: 100, length: "bar", pro: true,
+    form: "Verse Verse Chorus Verse Chorus Bridge Chorus x2", sections: [
+    { name: "Verse", chords: "C Am F G", bpm: null },
+    { name: "Chorus", chords: "F G C Am | F G C C", bpm: null },
+    { name: "Bridge", chords: "Dm Em F G", bpm: null }] },
+  { name: "Slow intro, fast tune", key: "Am", sig: "4/4", bpm: 152, length: "bar", pro: true, form: "Intro A x2", sections: [
+    { name: "Intro", chords: "Am F C G", bpm: 72 },
+    { name: "A", chords: "Am F C G | Am F E7 E7", bpm: null }] },
 ];
-const presetLabel = (p, sig, bpm, shift = 0) => `${p.name} in ${keyName(p.key, shift)} · ${sig} · ${bpm} bpm`;
+const exampleLabel = (ex, sig, bpm, shift = 0) => `${ex.name} in ${keyName(ex.key, shift)} · ${sig} · ${bpm} bpm`;
 const SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "12/8", "5/4", "7/8"];
 const LENGTHS = [["half", "½ bar"], ["bar", "1 bar"], ["two", "2 bars"]];
 
-// Every visit opens on a random example, ready to play.
-const START = PRESETS[Math.floor(Math.random() * PRESETS.length)];
+// ---- State ----
+let nextSectionId = 1;
+// `formName` is the name the play order uses for this section, so renaming
+// the section can rename it there too.
+const newSection = (name, chords = "", bpm = null) => ({ id: nextSectionId++, name, formName: name, chords, bpm });
+const validBpm = (v) => {
+  const n = Number(v);
+  return v !== null && v !== "" && Number.isFinite(n) && n >= 40 && n <= 240 ? Math.round(n) : null;
+};
+
 const state = {
-  chords: START.chords, sig: START.sig, bpm: START.bpm, length: "bar", countIn: true, repeats: 4,
+  title: "", sections: [], form: "", sig: "4/4", bpm: 96, length: "bar", countIn: true, repeats: 4,
   enabled: { piano: true, guitar: true, strings: true, bass: true, drums: true },
   levels: { piano: 80, guitar: 70, strings: 60, bass: 80, drums: 75 },
 };
+
+// Loads a song (an example or a saved jam) into the editor. Saved data is
+// checked field by field, since it comes back from storage.
+function applySong(song) {
+  const sections = Array.isArray(song.sections) ? song.sections.slice(0, MAX_SECTIONS) : [];
+  state.sections = sections.map((s) => newSection(String(s.name ?? "A").slice(0, 16), String(s.chords ?? "").slice(0, 4000), validBpm(s.bpm)));
+  if (!state.sections.length) state.sections = [newSection("A", "C G Am F")];
+  state.form = String(song.form ?? "").slice(0, 600);
+  try { state.sig = parseTimeSignature(song.sig).label; } catch (e) { state.sig = "4/4"; }
+  state.bpm = validBpm(song.bpm) ?? 100;
+  state.length = ["half", "bar", "two"].includes(song.length) ? song.length : "bar";
+}
+
+// Every visit opens on a random example, ready to play.
+applySong(EXAMPLES.filter((ex) => !ex.pro)[Math.floor(Math.random() * EXAMPLES.filter((ex) => !ex.pro).length)]);
+
 try {
   const saved = JSON.parse(localStorage.getItem("jam-track-settings") || "null");
   // Remember how the band is set up, not the song.
   if (saved && typeof saved === "object") {
     if (typeof saved.countIn === "boolean") state.countIn = saved.countIn;
-    if ([2, 4, 8, 16].includes(saved.repeats)) state.repeats = saved.repeats;
+    if ([1, 2, 4, 8, 16].includes(saved.repeats)) state.repeats = saved.repeats;
     Object.assign(state.enabled, saved.enabled);
     Object.assign(state.levels, saved.levels);
   }
@@ -781,10 +1128,15 @@ function persist() {
   try { localStorage.setItem("jam-track-settings", JSON.stringify({ countIn, repeats, enabled, levels })); } catch (e) { /* ignore */ }
 }
 
-let parsed = { chords: [], errors: [], tokens: [] };
-let lastGood = [];
-
-function meterOf() { try { return parseTimeSignature(state.sig); } catch (e) { return makeMeter(4, 4); } }
+let meterCache = { sig: null, meter: null };
+function meterOf() {
+  if (meterCache.sig !== state.sig) {
+    let meter;
+    try { meter = parseTimeSignature(state.sig); } catch (e) { meter = makeMeter(4, 4); }
+    meterCache = { sig: state.sig, meter };
+  }
+  return meterCache.meter;
+}
 const NOTE_VALUES = { 1: "whole", 2: "half", 4: "quarter", 8: "eighth", 16: "16th", 32: "32nd" };
 function describeMeter(m) {
   const beats = `${m.numerator} ${NOTE_VALUES[m.denominator]}-note beat${m.numerator === 1 ? "" : "s"} a bar`;
@@ -794,9 +1146,49 @@ function beatsPerChord(meter) {
   const n = meter.numerator;
   return state.length === "half" ? Math.max(1, Math.round(n / 2)) : state.length === "two" ? n * 2 : n;
 }
+const multi = () => state.sections.length > 1;
+
+// ---- Parsing ----
+// parsed: what's on screen, errors included. lastGood: the song as it last
+// parsed cleanly, which is what plays.
+let parsed = { secs: [], order: [], errors: [], skipped: [] };
+let lastGood = { parts: [] };
+
+function parseAll() {
+  const many = multi();
+  const errors = [];
+  const names = state.sections.map((s) => s.name.trim());
+  const secs = state.sections.map((s, i) => {
+    const tokens = tokenize(s.chords), chords = [], bad = new Set();
+    tokens.forEach((t, j) => {
+      try { chords.push(parseChord(t)); }
+      catch (e) { bad.add(j); errors.push((many ? `${names[i] || "Section " + (i + 1)}: ` : "") + e.message); }
+    });
+    return { tokens, chords, bad };
+  });
+  let order = [0];
+  if (many) {
+    names.forEach((n, i) => { const msg = sectionNameError(n); if (msg) errors.push(`Section ${i + 1}: ${msg}`); });
+    const seen = new Set();
+    for (const n of names) {
+      if (n && seen.has(n.toLowerCase())) errors.push(`Two sections are called ${n}. Give each one its own name.`);
+      seen.add(n.toLowerCase());
+    }
+    try { order = parseForm(state.form, names); } catch (e) { errors.push("Play order: " + e.message); order = []; }
+  }
+  // Sections with no chords yet are skipped rather than stopping the band.
+  const skipped = [...new Set(order)].filter((i) => !secs[i].tokens.length);
+  const audible = order.filter((i) => secs[i].chords.length);
+  parsed = { secs, order, errors, skipped };
+  if (!errors.length && audible.length) {
+    lastGood = { parts: audible.map((i) => ({ name: many ? names[i] : "", chords: secs[i].chords, bpm: many ? state.sections[i].bpm : null, section: i })) };
+  }
+}
 
 // ---- Rendering ----
 const $ = (id) => document.getElementById(id);
+const X_ICON = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12"/></svg>';
+function escapeHTML(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
 function chordHTML(symbol) {
   const m = CHORD_RE.exec(symbol);
   const acc = (a) => (a === "#" ? "♯" : a === "b" ? "♭" : "");
@@ -805,30 +1197,84 @@ function chordHTML(symbol) {
   const qual = q ? (q === "m" || q === "-" ? escapeHTML(q) : `<sup>${escapeHTML(q).replace(/b5/, "♭5")}</sup>`) : "";
   return `${l}${acc(a)}${qual}${bl ? `<span class="slash">/${bl}${acc(ba)}</span>` : ""}`;
 }
-function escapeHTML(s) { return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
+const firstSymbol = () => lastGood.parts[0]?.chords[0]?.symbol || "–";
 
-function parseInput() {
-  const tokens = tokenize(state.chords);
-  const chords = [], errors = [];
-  tokens.forEach((t, i) => { try { chords.push(parseChord(t)); } catch (e) { errors.push({ i, message: e.message }); } });
-  parsed = { tokens, chords, errors };
-  if (!errors.length && chords.length) lastGood = chords;
+// Rebuilds the section editors. Typing never calls this (it would drop focus);
+// it runs when sections are added, removed or loaded.
+function renderSections() {
+  const many = multi();
+  $("sections").innerHTML = state.sections.map((s, i) => `
+    <div class="sec${many ? " multi" : ""}" data-index="${i}">
+      ${many ? `<div class="sec-head">
+        <input class="sec-name" type="text" value="${escapeHTML(s.name)}" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Section ${i + 1} name">
+        <label class="sec-tempo"><input class="sec-bpm" type="number" inputmode="numeric" min="40" max="240" step="1" value="${s.bpm ?? ""}" placeholder="${state.bpm}" aria-label="Section ${i + 1} tempo. Leave it empty to follow the song tempo."><span>bpm</span></label>
+        <button class="icon-btn sec-remove" type="button" aria-label="Remove section ${i + 1}">${X_ICON}</button>
+      </div>` : ""}
+      <textarea class="sec-chords"${i === 0 ? ' id="chords"' : ""} rows="2" spellcheck="false" autocapitalize="characters" autocomplete="off"${many ? ` aria-label="Chords for section ${i + 1}"` : ""}>${escapeHTML(s.chords)}</textarea>
+      <div class="chart"></div>
+    </div>`).join("");
+  $("add-section").disabled = state.sections.length >= MAX_SECTIONS;
+  renderCharts();
 }
 
-function renderChart() {
-  const chart = $("chart");
-  const bad = new Set(parsed.errors.map((e) => e.i));
+function renderCharts() {
   const half = state.length === "half";
-  chart.style.gridTemplateColumns = `repeat(${half ? 8 : 4}, minmax(0, 1fr))`;
-  chart.innerHTML = parsed.tokens.map((t, i) =>
-    `<div class="cell${bad.has(i) ? " bad" : ""}${half ? " half" : ""}" data-i="${i}">${chordHTML(t)}</div>`).join("") ||
-    `<div class="cell" style="grid-column: 1 / -1; color: var(--muted); font: 500 15px var(--font-body)">Type some chords above.</div>`;
+  document.querySelectorAll("#sections .sec").forEach((el) => {
+    const i = Number(el.dataset.index), sec = parsed.secs[i];
+    if (!sec) return;
+    const chart = el.querySelector(".chart");
+    chart.style.gridTemplateColumns = `repeat(${half ? 8 : 4}, minmax(0, 1fr))`;
+    chart.innerHTML = sec.tokens.map((t, j) =>
+      `<div class="cell${sec.bad.has(j) ? " bad" : ""}${half ? " half" : ""}" data-i="${j}">${chordHTML(t)}</div>`).join("") ||
+      `<div class="cell empty">${multi() ? "No chords yet, so this section is skipped." : "Type some chords above."}</div>`;
+    const nameInput = el.querySelector(".sec-name");
+    if (nameInput) nameInput.setAttribute("aria-invalid", sectionNameError(state.sections[i].name.trim()) ? "true" : "false");
+  });
+  lastHighlight = null;
+}
+
+let formTyping = 0;
+function renderErrors() {
+  // Hold back play-order complaints while someone is still typing a name.
+  const errors = parsed.errors.filter((e) => !(formTyping && e.startsWith("Play order")));
   const err = $("chord-error");
-  if (parsed.errors.length) {
-    err.textContent = parsed.errors[0].message + (playing ? " The band keeps playing the last chords that worked." : "");
+  if (errors.length) {
+    err.textContent = errors[0] + (playing ? " The band keeps playing the last version that worked." : "");
     err.hidden = false;
   } else err.hidden = true;
-  $("save").disabled = !lastGood.length || noDownloads;
+  $("save").disabled = !lastGood.parts.length || noDownloads;
+}
+
+function formatDuration(seconds) {
+  const total = Math.round(seconds);
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+}
+
+function renderFormField() {
+  const many = multi();
+  $("form-field").hidden = !many;
+  if (!many) return;
+  const input = $("form");
+  if (document.activeElement !== input) input.value = state.form;
+  input.placeholder = state.sections.map((s) => s.name.trim() || "?").join(" ");
+  input.setAttribute("aria-invalid", !formTyping && parsed.errors.some((e) => e.startsWith("Play order")) ? "true" : "false");
+  const summary = $("form-summary");
+  if (parsed.errors.length || !lastGood.parts.length) {
+    summary.textContent = "Section names in the order they play. Write x2 after a name to repeat it.";
+    return;
+  }
+  const meter = meterOf(), bpc = beatsPerChord(meter);
+  let beats = 0, seconds = 0;
+  for (const p of lastGood.parts) {
+    const b = p.chords.length * bpc;
+    beats += b;
+    seconds += b * (60 / (p.bpm || state.bpm)) * meter.quartersPerBeat;
+  }
+  const bars = beats / meter.numerator;
+  const barsText = Number.isInteger(bars) ? `${bars} bar${bars === 1 ? "" : "s"}` : `${+bars.toFixed(1)} bars`;
+  const skipped = parsed.skipped.map((i) => state.sections[i].name.trim());
+  const skipText = skipped.length ? ` ${skipped.join(" and ")} ${skipped.length === 1 ? "has" : "have"} no chords yet, so ${skipped.length === 1 ? "it's" : "they're"} skipped.` : "";
+  summary.textContent = `Plays ${lastGood.parts.map((p) => p.name).join(" ")}. ${barsText}, ${formatDuration(seconds)} each time through.${skipText}`;
 }
 
 function renderDots(activeBeat) {
@@ -843,11 +1289,46 @@ function renderDots(activeBeat) {
   [...dots.children].forEach((d, i) => d.classList.toggle("on", i === activeBeat));
 }
 
+// Which example the song is (in any key), so the dropdown can name it.
+function matchExample() {
+  for (let i = 0; i < EXAMPLES.length; i++) {
+    const ex = EXAMPLES[i];
+    if (ex.sections.length !== state.sections.length) continue;
+    if (ex.sections.length > 1) {
+      const sameNames = ex.sections.every((s, j) => s.name.toLowerCase() === state.sections[j].name.trim().toLowerCase());
+      const norm = (f) => f.toLowerCase().split(/[\s,]+/).filter(Boolean).join(" ");
+      if (!sameNames || norm(ex.form) !== norm(state.form)) continue;
+    }
+    let shift = null;
+    const same = ex.sections.every((s, j) => {
+      const k = transpositionOf(state.sections[j].chords, s.chords);
+      if (k < 0 || (shift !== null && k !== shift)) return false;
+      shift = k;
+      return true;
+    });
+    if (same) return { index: i, shift };
+  }
+  return { index: -1, shift: 0 };
+}
+
+function renderExamples() {
+  const { index, shift } = matchExample();
+  const select = $("presets");
+  // The chosen example shows the key, tempo and meter it's playing in now; the rest show their own.
+  EXAMPLES.forEach((ex, i) => {
+    const option = select.querySelector(`option[value="${i}"]`);
+    const text = i === index ? exampleLabel(ex, state.sig, state.bpm, shift) : exampleLabel(ex, ex.sig, ex.bpm);
+    if (option.text !== text) option.text = text;
+  });
+  select.value = index < 0 ? "" : String(index);
+}
+
 function renderControls() {
   $("bpm-value").textContent = state.bpm;
   $("tempo").value = state.bpm;
   $("countin").checked = state.countIn;
   $("repeats").value = String(state.repeats);
+  document.querySelectorAll(".sec-bpm").forEach((input) => { input.placeholder = state.bpm; });
   const onChip = SIGNATURES.includes(state.sig);
   for (const b of $("signatures").children) b.setAttribute("aria-checked", b.dataset.v === state.sig ? "true" : "false"), b.setAttribute("aria-pressed", b.dataset.v === state.sig);
   const sigInput = $("sig-input");
@@ -860,30 +1341,41 @@ function renderControls() {
   $("sig-feel").textContent = describeMeter(meterOf());
   if (!playing) renderDots(-1);
   for (const b of $("lengths").children) b.setAttribute("aria-checked", b.dataset.v === state.length ? "true" : "false"), b.setAttribute("aria-pressed", b.dataset.v === state.length);
-  let preset = -1, shift = 0;
-  for (let i = 0; i < PRESETS.length && preset < 0; i++) {
-    const k = transpositionOf(state.chords, PRESETS[i].chords);
-    if (k >= 0) { preset = i; shift = k; }
-  }
-  const select = $("presets");
-  // The chosen example shows the key, tempo and meter it's playing in now; the rest show their own.
-  PRESETS.forEach((p, i) => {
-    const text = i === preset ? presetLabel(p, state.sig, state.bpm, shift) : presetLabel(p, p.sig, p.bpm);
-    if (select.options[i + 1].text !== text) select.options[i + 1].text = text;
-  });
-  select.value = preset < 0 ? "" : String(preset);
+  renderExamples();
   for (const inst of INSTRUMENTS) {
-    const row = $("row-" + inst.name);
-    row.classList.toggle("off", !state.enabled[inst.name]);
+    $("row-" + inst.name).classList.toggle("off", !state.enabled[inst.name]);
     $("on-" + inst.name).checked = state.enabled[inst.name];
     $("vol-" + inst.name).value = state.levels[inst.name];
   }
 }
 
+function renderPro() {
+  const button = $("account");
+  button.textContent = isPro ? "Pro ✓" : "Go Pro";
+  button.classList.toggle("on", isPro);
+  button.setAttribute("aria-label", isPro ? "Your Pro subscription" : "Go Pro");
+  document.querySelectorAll(".pro-tag").forEach((tag) => { tag.hidden = isPro; });
+  $("library-row").hidden = !isPro;
+  $("delete-jam").hidden = !isPro || !currentJamId;
+  const hint = $("library-hint");
+  hint.textContent = isPro ? "Jams you save show up here." : "Save your jams and open them again later with Pro.";
+  hint.hidden = isPro && jams.length > 0;
+}
+
+function renderLibrary() {
+  const select = $("library");
+  const day = (t) => new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  select.innerHTML = `<option value="">${jams.length ? `Open a saved jam (${jams.length})` : "No saved jams yet"}</option>` +
+    jams.map((j) => `<option value="${escapeHTML(j.id)}">${escapeHTML(j.title)} · saved ${day(j.savedAt)}</option>`).join("");
+  select.value = currentJamId && jams.some((j) => j.id === currentJamId) ? currentJamId : "";
+  select.disabled = !jams.length;
+  renderPro();
+}
+
 function buildUI() {
-  $("chords").value = state.chords;
+  const options = (pro) => EXAMPLES.map((ex, i) => (ex.pro === pro ? `<option value="${i}">${escapeHTML(exampleLabel(ex, ex.sig, ex.bpm))}</option>` : "")).join("");
   $("presets").innerHTML = `<option value="" disabled>Your own chords</option>` +
-    PRESETS.map((p, i) => `<option value="${i}">${presetLabel(p, p.sig, p.bpm)}</option>`).join("");
+    `<optgroup label="Examples">${options(false)}</optgroup><optgroup label="Pro: songs in sections">${options(true)}</optgroup>`;
   $("signatures").innerHTML = SIGNATURES.map((s) => `<button type="button" role="radio" class="chip" data-v="${s}">${s}</button>`).join("");
   $("lengths").innerHTML = LENGTHS.map(([v, l]) => `<button type="button" role="radio" class="chip" data-v="${v}" style="font-family: var(--font-body); font-size: 15px">${l}</button>`).join("");
   $("band").innerHTML = INSTRUMENTS.map((inst) => `
@@ -892,36 +1384,80 @@ function buildUI() {
       <input type="range" id="vol-${inst.name}" min="0" max="100" aria-label="${inst.label} volume">
       <span class="switch"><input type="checkbox" id="on-${inst.name}" aria-label="${inst.label} on"><span></span></span>
     </div>`).join("");
+  $("plan-price").textContent = PLAN.price;
 }
 
-// ---- Playback scheduler ----
-let playing = false, bus = null, gains = {}, timer = null, raf = 0;
-let anchorTime = 0, anchorBeat = 0, spb = 0.5, scheduledTo = 0;
-let loop = { notes: [], beats: 0, cells: [] };
+// ---- Playback ----
+let playing = false, bus = null, gains = {}, timer = null, raf = 0, wakeLock = null, countingIn = false;
+// The playhead is a beat position. (anchorTime, anchorBeat) pins one beat to
+// the audio clock; the tempo map turns beats after it into seconds.
+let anchorTime = 0, anchorBeat = 0, scheduledTo = 0;
+const EMPTY_LOOP = { notes: [], beats: 0, segments: [], cells: [], parts: [] };
+let loop = EMPTY_LOOP;
 
 function levelGain(name) { return state.enabled[name] ? Math.pow(state.levels[name] / 80, 2) : 0; }
 
 function rebuildLoop() {
-  const meter = meterOf();
-  const bpc = beatsPerChord(meter);
-  const prog = lastGood;
-  if (!prog.length) { loop = { notes: [], beats: 0 }; return; }
-  // Repeat the progression until it ends on a bar line so every pass loops cleanly.
+  const meter = meterOf(), bpc = beatsPerChord(meter), parts = lastGood.parts;
+  if (!parts.length) { loop = EMPTY_LOOP; return; }
+  const passBeats = parts.reduce((n, p) => n + p.chords.length, 0) * bpc;
+  // Repeat the song until it ends on a bar line so every pass loops cleanly.
   let reps = 1;
-  while ((reps * prog.length * bpc) % meter.numerator !== 0) reps++;
-  const { notes, beats } = generateNotes(prog, meter, bpc, reps, INSTRUMENTS.map((i) => i.name));
-  notes.sort((a, b) => a.start - b.start);
-  loop = { notes, beats, bpc, count: prog.length };
+  while ((reps * passBeats) % meter.numerator !== 0) reps++;
+  const song = generateSong(parts, meter, bpc, reps, INSTRUMENTS.map((i) => i.name));
+  song.notes.sort((a, b) => a.start - b.start);
+  loop = { ...song, parts };
 }
 
-const beatAt = (t) => anchorBeat + (t - anchorTime) / spb;
-const timeAt = (b) => anchorTime + (b - anchorBeat) * spb;
-function secondsPerBeat() { return (60 / state.bpm) * meterOf().quartersPerBeat; }
+// ---- Tempo map: each section plays at its own tempo or the song's ----
+const segmentAt = (local) => loop.segments.find((s) => local < s.end) || loop.segments[loop.segments.length - 1];
+const cellAt = (local) => loop.cells.find((c) => local < c.end) || loop.cells[loop.cells.length - 1];
+const spbOf = (seg) => (60 / ((seg && seg.bpm) || state.bpm)) * meterOf().quartersPerBeat;
+// Seconds per beat at beat `b` (the count-in takes the first section's tempo).
+function spbAtBeat(b) {
+  if (!loop.beats) return spbOf(null);
+  return spbOf(b < 0 ? loop.segments[0] : segmentAt(mod(b, loop.beats)));
+}
+// The next beat after `b` where the tempo may change.
+function nextBoundary(b) {
+  if (!loop.beats) return Infinity;
+  if (b < 0) return 0;
+  const L = loop.beats, k = Math.floor(b / L);
+  return k * L + segmentAt(b - k * L).end;
+}
+function timeAt(b) {
+  if (b < anchorBeat) return anchorTime - (anchorBeat - b) * spbAtBeat(b);
+  let t = anchorTime, x = anchorBeat;
+  while (x < b) { const e = Math.min(b, nextBoundary(x)); t += (e - x) * spbAtBeat(x); x = e; }
+  return t;
+}
+function beatAt(t) {
+  let x = anchorBeat, rest = t - anchorTime;
+  if (rest <= 0) return x + rest / spbAtBeat(x);
+  for (let guard = 0; guard < 100000; guard++) {
+    const spb = spbAtBeat(x), e = nextBoundary(x), span = (e - x) * spb;
+    if (rest <= span) return x + rest / spb;
+    rest -= span;
+    x = e;
+  }
+  return x;
+}
+// Applies a change to the tempo or the loop without moving the playhead.
+function holdPlayhead(change) {
+  if (!playing) { change(); return; }
+  const now = ctx.currentTime, b = beatAt(now);
+  change();
+  anchorTime = now;
+  anchorBeat = b;
+  // Notes up to scheduledTo are already queued; never queue them twice.
+  if (scheduledTo < b) scheduledTo = b;
+}
 
 function scheduleRange(b0, b1) {
+  const beatsPerBar = meterOf().numerator;
   // Count-in clicks for negative beats.
   for (let b = Math.ceil(b0); b < Math.min(b1, 0); b++) {
-    VOICES.drums(master, timeAt(b), 0.1, CLOSED_HAT, b === -meterOf().numerator ? 120 : 95);
+    VOICES.drums(master, timeAt(b), 0.1, CLOSED_HAT, b === -beatsPerBar ? 120 : 95);
   }
   if (!loop.beats) return;
   const L = loop.beats;
@@ -932,14 +1468,18 @@ function scheduleRange(b0, b1) {
       if (abs >= b1) break;
       if (!state.enabled[n.inst]) continue;
       const v = Math.max(1, Math.min(127, n.velocity + Math.floor(Math.random() * 13) - 6));
-      VOICES[n.inst](gains[n.inst], timeAt(abs), n.duration * spb, n.pitch, v);
+      VOICES[n.inst](gains[n.inst], timeAt(abs), n.duration * spbAtBeat(abs), n.pitch, v);
     }
   }
 }
 
 function tick() {
-  const horizon = beatAt(ctx.currentTime + 0.2);
+  const now = ctx.currentTime;
+  const horizon = beatAt(now + 0.2);
   if (horizon > scheduledTo) { scheduleRange(scheduledTo, horizon); scheduledTo = horizon; }
+  // Keep the anchor near now so tempo lookups stay short on long sessions.
+  const b = Math.floor(beatAt(now));
+  if (b - anchorBeat >= 4) { anchorTime = timeAt(b); anchorBeat = b; }
 }
 
 function start() {
@@ -949,9 +1489,9 @@ function start() {
   bus = ctx.createGain(); bus.connect(master);
   gains = {};
   for (const inst of INSTRUMENTS) { const g = ctx.createGain(); g.gain.value = levelGain(inst.name); g.connect(bus); gains[inst.name] = g; }
-  spb = secondsPerBeat();
   anchorTime = ctx.currentTime + 0.08;
-  anchorBeat = state.countIn ? -meterOf().numerator : 0;
+  countingIn = state.countIn;
+  anchorBeat = countingIn ? -meterOf().numerator : 0;
   scheduledTo = anchorBeat;
   playing = true;
   tick();
@@ -960,7 +1500,6 @@ function start() {
   setPlayIcon();
   try { navigator.wakeLock?.request("screen").then((l) => (wakeLock = l)).catch(() => {}); } catch (e) { /* optional */ }
 }
-let wakeLock = null;
 
 function stop() {
   playing = false;
@@ -974,10 +1513,11 @@ function stop() {
   try { wakeLock?.release(); } catch (e) { /* ignore */ }
   wakeLock = null;
   setPlayIcon();
-  highlight(-1);
+  highlight(null);
   $("where").textContent = "Ready";
   renderDots(-1);
-  showNowChord(lastGood[0]?.symbol || "–");
+  showNowChord(firstSymbol());
+  renderErrors();
 }
 
 function restartIfPlaying() { if (playing) { stop(); start(); } }
@@ -987,87 +1527,428 @@ function setPlayIcon() {
   $("play-icon").innerHTML = playing ? '<rect x="6" y="6" width="12" height="12" rx="1.5"/>' : '<path d="M7 4.5v15l13-7.5z"/>';
 }
 
-let lastCell = -2;
-function highlight(i) {
-  if (i === lastCell) return;
-  lastCell = i;
-  for (const c of $("chart").children) c.classList.toggle("now", Number(c.dataset.i) === i);
+let lastHighlight = null;
+function highlight(h) {
+  const key = h ? `${h.section}:${h.chord}` : "";
+  if (key === lastHighlight) return;
+  lastHighlight = key;
+  document.querySelectorAll("#sections .cell.now").forEach((c) => c.classList.remove("now"));
+  document.querySelectorAll("#sections .sec.on").forEach((c) => c.classList.remove("on"));
+  if (!h) return;
+  const sec = document.querySelector(`#sections .sec[data-index="${h.section}"]`);
+  if (!sec) return;
+  sec.classList.add("on");
+  sec.querySelector(`.cell[data-i="${h.chord}"]`)?.classList.add("now");
 }
-function showNowChord(symbol) { $("now-chord").innerHTML = chordHTML(symbol); }
+function showNowChord(symbol) { const el = $("now-chord"); el.dataset.sym = symbol; el.innerHTML = chordHTML(symbol); }
 
 function animate() {
   if (!playing) return;
   const b = beatAt(ctx.currentTime);
   const meter = meterOf();
-  if (b < 0) {
+  if (b < 0 && !countingIn) {
+    // The moment before the first beat: nothing to show yet.
+  } else if (b < 0) {
     const beatInBar = Math.floor(b + meter.numerator);
     $("where").textContent = `Count-in · ${Math.max(1, beatInBar + 1)}`;
     renderDots(Math.max(0, beatInBar));
-    showNowChord(lastGood[0]?.symbol || "–");
-    highlight(-1);
+    highlight(null);
   } else if (loop.beats) {
-    const inLoop = b % loop.beats;
-    const chordIndex = Math.floor(inLoop / loop.bpc) % loop.count;
-    const bar = Math.floor(inLoop / meter.numerator) % Math.max(1, Math.round(loop.count * loop.bpc / meter.numerator)) + 1;
-    const beatInBar = Math.floor(b) % meter.numerator;
-    $("where").textContent = `Bar ${bar} · ${beatInBar + 1}`;
+    const local = mod(b, loop.beats);
+    const cell = cellAt(local), seg = segmentAt(local), part = loop.parts[cell.part];
+    const bar = Math.floor((local - seg.start) / meter.numerator) + 1;
+    const beatInBar = mod(Math.floor(b), meter.numerator);
+    $("where").textContent = `${part.name ? part.name + " · " : ""}Bar ${bar} · ${beatInBar + 1}`;
     renderDots(beatInBar);
-    const sym = lastGood[chordIndex]?.symbol;
-    if (sym && $("now-chord").dataset.sym !== sym) { $("now-chord").dataset.sym = sym; showNowChord(sym); }
+    const sym = part.chords[cell.chord]?.symbol;
+    if (sym && $("now-chord").dataset.sym !== sym) showNowChord(sym);
     // Only point at the chart when it still matches what is playing.
-    highlight(parsed.errors.length ? -1 : chordIndex);
+    highlight(parsed.errors.length ? null : { section: part.section, chord: cell.chord });
   }
   raf = requestAnimationFrame(animate);
 }
 
-// ---- Events ----
-function onChordsChanged() {
-  parseInput();
-  renderChart();
-  if (playing) {
-    const keepBeat = beatAt(ctx.currentTime);
-    rebuildLoop();
-    lastCell = -2;
-    // Keep the playhead where it is; the new progression picks up from there.
-    scheduledTo = Math.max(scheduledTo, keepBeat);
-  } else showNowChord(lastGood[0]?.symbol || "–");
+// ---- Editing ----
+function onSongChanged() {
+  parseAll();
+  renderCharts();
+  renderErrors();
+  renderFormField();
+  renderExamples();
+  if (playing) holdPlayhead(rebuildLoop);
+  else showNowChord(firstSymbol());
+}
+
+// Puts a whole new song on screen: an example, a saved jam.
+function afterSongReplaced() {
+  $("title").value = state.title;
+  parseAll();
+  renderSections();
+  renderErrors();
+  renderFormField();
   renderControls();
-  persist();
+  renderLibrary();
+  showNowChord(firstSymbol());
+  restartIfPlaying();
+}
+
+function loadExample(i) {
+  applySong(EXAMPLES[i]);
+  state.title = "";
+  currentJamId = null;
+  afterSongReplaced();
+}
+
+function addSection() {
+  if (state.sections.length >= MAX_SECTIONS) return;
+  const used = new Set(state.sections.map((s) => s.name.trim().toLowerCase()));
+  const name = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].find((l) => !used.has(l.toLowerCase())) || `Part${state.sections.length + 1}`;
+  // With a play order written out, add the new section to the end so it's heard.
+  if (state.form.trim()) state.form = `${state.form.trim()} ${name}`;
+  state.sections.push(newSection(name));
+  renderSections();
+  onSongChanged();
+  document.querySelector(`#sections .sec[data-index="${state.sections.length - 1}"] .sec-chords`)?.focus();
+}
+
+function removeSection(i) {
+  const [removed] = state.sections.splice(i, 1);
+  state.form = state.sections.length > 1 ? removeFromForm(state.form, removed.formName) : "";
+  renderSections();
+  onSongChanged();
+}
+
+function transposeSong(semitones) {
+  // One spelling for the whole song, taken from its first chord.
+  const first = state.sections.find((s) => tokenize(s.chords).length);
+  if (!first) return;
+  const names = spellingFor(first.chords, semitones);
+  for (const s of state.sections) s.chords = transposeText(s.chords, semitones, names);
+  document.querySelectorAll("#sections .sec-chords").forEach((ta, i) => { ta.value = state.sections[i].chords; });
+  onSongChanged();
 }
 
 function setTempo(bpm) {
-  state.bpm = Math.max(40, Math.min(240, Math.round(bpm)));
-  if (playing) {
-    const now = ctx.currentTime, b = beatAt(now);
-    anchorTime = now; anchorBeat = b; spb = secondsPerBeat();
-    scheduledTo = Math.max(b, beatAt(now + 0.01));
-  }
-  renderControls(); persist();
+  holdPlayhead(() => { state.bpm = Math.max(40, Math.min(240, Math.round(bpm))); });
+  renderControls();
+  renderFormField();
 }
 
-function bind() {
-  $("chords").addEventListener("input", (e) => { state.chords = e.target.value; onChordsChanged(); });
-  const transpose = (semitones) => {
-    const next = transposeText(state.chords, semitones);
-    if (next === state.chords) return;
-    state.chords = next;
-    $("chords").value = next;
-    onChordsChanged();
+// ---- Storage: saved jams and the account ----
+// In Claude, each signed-in viewer gets a private store that lasts. Opened
+// anywhere else, the browser's localStorage stands in until there's a server.
+let store = null, billing = null, isPro = false, account = null, jams = [], currentJamId = null;
+
+function claudeStore(col) {
+  const byNewest = (a, b) => (b.savedAt || 0) - (a.savedAt || 0);
+  return {
+    kind: "claude",
+    async listJams() {
+      const snap = await col.where("kind", "==", "jam").get();
+      return snap.docs.map((d) => ({ ...d.data(), id: d.id })).sort(byNewest);
+    },
+    async saveJam(id, jam) {
+      const ref = id ? col.doc(id) : col.doc();
+      await ref.set({ kind: "jam", ...jam });
+      return ref.id;
+    },
+    async deleteJam(id) { await col.doc(id).delete(); },
+    async getAccount() { const snap = await col.doc("account").get(); return snap.exists ? snap.data() : null; },
+    async setAccount(record) { await col.doc("account").set(record); },
   };
-  $("transpose-down").addEventListener("click", () => transpose(-1));
-  $("transpose-up").addEventListener("click", () => transpose(1));
-  $("presets").addEventListener("change", (e) => {
-    const p = PRESETS[e.target.value]; if (!p) return;
-    const sigChanged = p.sig !== state.sig;
-    Object.assign(state, { chords: p.chords, sig: p.sig, length: "bar" });
-    $("chords").value = p.chords;
-    setTempo(p.bpm);
-    if (sigChanged || playing) { parseInput(); renderChart(); restartIfPlaying(); }
-    onChordsChanged();
+}
+
+function localStore() {
+  const JAMS = "jam-track-jams", ACCOUNT = "jam-track-account";
+  const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch (e) { return fallback; } };
+  const write = (key, value) => {
+    try { localStorage.setItem(key, JSON.stringify(value)); }
+    catch (e) { throw Object.assign(new Error("This browser won't store data for this page."), { code: "unavailable" }); }
+  };
+  return {
+    kind: "local",
+    async listJams() {
+      return Object.entries(read(JAMS, {})).map(([id, jam]) => ({ ...jam, id })).sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+    },
+    async saveJam(id, jam) {
+      const all = read(JAMS, {});
+      id = id || `jam-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+      all[id] = jam;
+      write(JAMS, all);
+      return id;
+    },
+    async deleteJam(id) { const all = read(JAMS, {}); delete all[id]; write(JAMS, all); },
+    async getAccount() { return read(ACCOUNT, null); },
+    async setAccount(record) { write(ACCOUNT, record); },
+  };
+}
+
+async function openStore() {
+  if (window.claude?.use) {
+    try {
+      const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      const id = db && user ? await user.id() : null;
+      if (db && id) return claudeStore(db.collection(`data/users/${id}`));
+    } catch (e) { /* fall back to the browser */ }
+  }
+  return localStore();
+}
+
+function snapshotJam() {
+  return {
+    title: state.title.trim() || "Untitled jam",
+    savedAt: Date.now(),
+    song: {
+      sections: state.sections.map((s) => ({ name: s.name.trim(), chords: s.chords, bpm: s.bpm ?? null })),
+      form: state.form, sig: state.sig, bpm: state.bpm, length: state.length,
+    },
+    band: { enabled: { ...state.enabled }, levels: { ...state.levels } },
+  };
+}
+
+function loadJam(jam) {
+  applySong(jam.song || {});
+  state.title = String(jam.title || "").slice(0, 80);
+  if (jam.band && typeof jam.band === "object") {
+    for (const inst of INSTRUMENTS) {
+      if (typeof jam.band.enabled?.[inst.name] === "boolean") state.enabled[inst.name] = jam.band.enabled[inst.name];
+      const level = Number(jam.band.levels?.[inst.name]);
+      if (Number.isFinite(level) && level >= 0 && level <= 100) state.levels[inst.name] = level;
+      if (gains[inst.name] && ctx) gains[inst.name].gain.setTargetAtTime(levelGain(inst.name), ctx.currentTime, 0.02);
+    }
+    persist();
+  }
+  currentJamId = jam.id;
+  $("jam-status").textContent = "";
+  afterSongReplaced();
+}
+
+async function refreshJams() {
+  try { jams = await store.listJams(); } catch (e) { jams = []; }
+  renderLibrary();
+}
+
+async function saveJam() {
+  const status = $("jam-status"), button = $("save-jam");
+  if (!store) { status.textContent = "Saving is still starting up. Try again in a moment."; return; }
+  button.disabled = true;
+  status.textContent = "Saving…";
+  try {
+    const jam = snapshotJam();
+    currentJamId = await store.saveJam(currentJamId, jam);
+    status.textContent = `Saved “${jam.title}”.`;
+    await refreshJams();
+  } catch (e) {
+    status.textContent = e?.code === "quota_exceeded" ? "Your saved jams are full. Delete some to make room."
+      : "Couldn't save. Check your connection and try again.";
+  }
+  button.disabled = false;
+}
+
+let deleteArmed = 0;
+async function deleteJam() {
+  const button = $("delete-jam");
+  if (!currentJamId) return;
+  if (!deleteArmed) {
+    button.textContent = "Tap again to delete";
+    deleteArmed = setTimeout(() => { deleteArmed = 0; button.textContent = "Delete"; }, 3000);
+    return;
+  }
+  clearTimeout(deleteArmed);
+  deleteArmed = 0;
+  button.textContent = "Delete";
+  const jam = jams.find((j) => j.id === currentJamId);
+  try {
+    await store.deleteJam(currentJamId);
+    currentJamId = null;
+    $("jam-status").textContent = `Deleted “${jam?.title || "that jam"}”. It's still on screen if you want to save it again.`;
+  } catch (e) {
+    $("jam-status").textContent = "Couldn't delete. Check your connection and try again.";
+  }
+  await refreshJams();
+}
+
+// ---- Pro: paywall and account ----
+let paywallAction = null;
+const PAYWALL_REASONS = {
+  sections: "Adding sections is part of Pro.",
+  example: "Songs in sections are part of Pro.",
+  save: "Saving jams is part of Pro.",
+};
+
+// Runs `action` now for Pro accounts; otherwise offers Pro and runs it after.
+function requirePro(reason, action) {
+  if (isPro) { action(); return; }
+  openPaywall(reason, action);
+}
+
+function openPaywall(reason, action) {
+  if (!billing) return;
+  paywallAction = action || null;
+  const why = $("paywall-reason");
+  why.textContent = PAYWALL_REASONS[reason] || "";
+  why.hidden = !why.textContent;
+  $("checkout-error").hidden = true;
+  $("paywall").showModal();
+}
+
+function clearCheckout() {
+  // Don't leave card details sitting in the page.
+  $("checkout").reset();
+  document.querySelectorAll("#checkout input").forEach((input) => input.removeAttribute("aria-invalid"));
+}
+
+async function submitCheckout(e) {
+  e.preventDefault();
+  const submit = $("checkout-submit"), error = $("checkout-error");
+  document.querySelectorAll("#checkout input").forEach((input) => input.removeAttribute("aria-invalid"));
+  error.hidden = true;
+  submit.disabled = true;
+  submit.textContent = "Starting Pro…";
+  try {
+    account = await billing.subscribe({
+      name: $("card-name").value, number: $("card-number").value, exp: $("card-exp").value, cvc: $("card-cvc").value,
+    });
+    isPro = true;
+    // Closing the dialog clears paywallAction, so take it first.
+    const action = paywallAction;
+    $("paywall").close();
+    showProStatus("Pro is on. This is test mode, so nothing was charged.");
+    await refreshJams();
+    action?.();
+  } catch (err) {
+    error.textContent = err.message || "Something went wrong. Try again.";
+    error.hidden = false;
+    if (err.field) { $(err.field).setAttribute("aria-invalid", "true"); $(err.field).focus(); }
+  } finally {
+    submit.disabled = false;
+    submit.textContent = "Start Pro";
+  }
+}
+
+function showProStatus(text) {
+  const el = $("pro-status");
+  el.textContent = text;
+  el.hidden = !text;
+}
+
+let cancelArmed = 0;
+function openAccount() {
+  const since = account?.since ? new Date(account.since).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" }) : "";
+  $("account-summary").textContent = `${PLAN.name}, ${PLAN.price} a ${PLAN.period}. ${account?.brand || "Card"} ending ${account?.last4 || "····"}${since ? `, since ${since}` : ""}.`;
+  $("account-cancel").textContent = "Cancel subscription";
+  $("account-dialog").showModal();
+}
+
+async function cancelPro() {
+  const button = $("account-cancel");
+  if (!cancelArmed) {
+    button.textContent = "Tap again to cancel Pro";
+    cancelArmed = setTimeout(() => { cancelArmed = 0; button.textContent = "Cancel subscription"; }, 4000);
+    return;
+  }
+  clearTimeout(cancelArmed);
+  cancelArmed = 0;
+  try {
+    await billing.cancel();
+    isPro = false;
+    account = null;
+    $("account-dialog").close();
+    showProStatus("Pro is off. Your saved jams are kept for when you come back.");
+    renderPro();
+  } catch (e) {
+    button.textContent = "Couldn't cancel. Try again";
+  }
+}
+
+async function initAccount() {
+  store = await openStore();
+  billing = createTestBilling(store);
+  try { account = await billing.status(); } catch (e) { account = null; }
+  isPro = !!account;
+  $("account").disabled = false;
+  if (isPro) await refreshJams();
+  else renderPro();
+}
+
+// ---- Events ----
+function bind() {
+  $("sections").addEventListener("input", (e) => {
+    const el = e.target.closest(".sec");
+    if (!el) return;
+    const s = state.sections[Number(el.dataset.index)];
+    if (e.target.classList.contains("sec-chords")) s.chords = e.target.value;
+    else if (e.target.classList.contains("sec-name")) {
+      s.name = e.target.value;
+      const next = s.name.trim();
+      const taken = state.sections.some((o) => o !== s && o.name.trim().toLowerCase() === next.toLowerCase());
+      // Keep the play order pointing at this section as it's renamed.
+      if (next && !taken && !sectionNameError(next) && next !== s.formName) {
+        if (state.form.trim()) state.form = renameInForm(state.form, s.formName, next);
+        s.formName = next;
+      }
+      el.querySelector(".sec-remove")?.classList.remove("armed");
+    } else if (e.target.classList.contains("sec-bpm")) s.bpm = validBpm(e.target.value);
+    else return;
+    onSongChanged();
   });
+  $("sections").addEventListener("click", (e) => {
+    const button = e.target.closest(".sec-remove");
+    if (!button) return;
+    const i = Number(button.closest(".sec").dataset.index);
+    // A section with chords takes a second tap to remove.
+    if (state.sections[i].chords.trim() && !button.classList.contains("armed")) {
+      button.classList.add("armed");
+      button.textContent = "Remove?";
+      setTimeout(() => { if (button.isConnected) { button.classList.remove("armed"); button.innerHTML = X_ICON; } }, 3000);
+      return;
+    }
+    removeSection(i);
+  });
+  $("add-section").addEventListener("click", () => requirePro("sections", addSection));
+  $("form").addEventListener("input", (e) => {
+    state.form = e.target.value;
+    clearTimeout(formTyping);
+    formTyping = setTimeout(() => { formTyping = 0; renderErrors(); renderFormField(); }, 900);
+    onSongChanged();
+  });
+  $("form").addEventListener("change", () => { clearTimeout(formTyping); formTyping = 0; renderErrors(); renderFormField(); });
+  $("transpose-down").addEventListener("click", () => transposeSong(-1));
+  $("transpose-up").addEventListener("click", () => transposeSong(1));
+  $("presets").addEventListener("change", (e) => {
+    const i = Number(e.target.value), ex = EXAMPLES[i];
+    if (!ex) return;
+    if (ex.pro && !isPro) {
+      renderExamples();
+      openPaywall("example", () => loadExample(i));
+      return;
+    }
+    loadExample(i);
+  });
+  $("title").addEventListener("input", (e) => { state.title = e.target.value; });
+  $("save-jam").addEventListener("click", () => requirePro("save", saveJam));
+  $("library").addEventListener("change", (e) => {
+    const jam = jams.find((j) => j.id === e.target.value);
+    if (jam) loadJam(jam);
+  });
+  $("delete-jam").addEventListener("click", deleteJam);
+  $("account").addEventListener("click", () => (isPro ? openAccount() : openPaywall("", null)));
+  $("checkout").addEventListener("submit", submitCheckout);
+  $("paywall-cancel").addEventListener("click", () => $("paywall").close());
+  $("paywall").addEventListener("close", () => { paywallAction = null; clearCheckout(); });
+  $("card-number").addEventListener("input", (e) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 19);
+    e.target.value = digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+  });
+  $("card-exp").addEventListener("input", (e) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+    e.target.value = digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
+  });
+  $("account-close").addEventListener("click", () => $("account-dialog").close());
+  $("account-cancel").addEventListener("click", cancelPro);
   $("signatures").addEventListener("click", (e) => {
     const b = e.target.closest(".chip"); if (!b || b.dataset.v === state.sig) return;
-    state.sig = b.dataset.v; renderControls(); renderDots(-1); persist(); restartIfPlaying();
+    state.sig = b.dataset.v; renderControls(); renderFormField(); renderDots(-1); restartIfPlaying();
   });
   let sigTimer = 0;
   const applySig = (final) => {
@@ -1079,7 +1960,7 @@ function bind() {
       const m = parseTimeSignature(text);
       input.removeAttribute("aria-invalid"); $("sig-error").hidden = true;
       $("sig-feel").textContent = describeMeter(m);
-      if (m.label !== state.sig) { state.sig = m.label; renderControls(); renderDots(-1); persist(); restartIfPlaying(); }
+      if (m.label !== state.sig) { state.sig = m.label; renderControls(); renderFormField(); renderDots(-1); restartIfPlaying(); }
       if (final) { input.value = SIGNATURES.includes(m.label) ? "" : m.label; renderControls(); }
     } catch (err) {
       // Only complain once they've stopped typing; "11/" is fine on the way to "11/8".
@@ -1091,7 +1972,7 @@ function bind() {
   $("sig-input").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); applySig(true); e.target.blur(); } });
   $("lengths").addEventListener("click", (e) => {
     const b = e.target.closest(".chip"); if (!b) return;
-    state.length = b.dataset.v; renderChart(); renderControls(); persist(); restartIfPlaying();
+    state.length = b.dataset.v; renderCharts(); renderControls(); renderFormField(); restartIfPlaying();
   });
   $("tempo").addEventListener("input", (e) => setTempo(Number(e.target.value)));
   $("tempo-down").addEventListener("click", () => setTempo(state.bpm - 1));
@@ -1119,20 +2000,23 @@ function bind() {
   }
   $("play").addEventListener("click", () => (playing ? stop() : start()));
   document.addEventListener("keydown", (e) => {
-    if (e.code === "Space" && !/^(TEXTAREA|INPUT|SELECT|BUTTON)$/.test(e.target.tagName)) { e.preventDefault(); playing ? stop() : start(); }
+    if (e.code === "Space" && !e.target.closest("dialog") && !/^(TEXTAREA|INPUT|SELECT|BUTTON)$/.test(e.target.tagName)) {
+      e.preventDefault(); playing ? stop() : start();
+    }
   });
   $("save").addEventListener("click", saveMidi);
 }
 
-// ---- Save ----
+// ---- MIDI file ----
 let downloads = null, noDownloads = false, directDownload = false;
 async function saveMidi() {
   const status = $("save-status");
   const names = INSTRUMENTS.map((i) => i.name).filter((n) => state.enabled[n]);
   if (!names.length) { status.textContent = "Turn on at least one instrument to save a file."; status.hidden = false; return; }
   const meter = meterOf();
-  const midi = buildMidi({ progression: lastGood, meter, beatsPerChord: beatsPerChord(meter), repeats: state.repeats, bpm: state.bpm, names });
-  const slug = lastGood.map((c) => c.symbol).join("-").replace(/#/g, "s").replace(/[^A-Za-z0-9-]/g, "").slice(0, 60);
+  const midi = buildMidi({ parts: lastGood.parts, meter, beatsPerChord: beatsPerChord(meter), repeats: state.repeats, bpm: state.bpm, names });
+  const source = state.title.trim() || lastGood.parts.flatMap((p) => p.chords.map((c) => c.symbol)).slice(0, 12).join("-");
+  const slug = source.replace(/#/g, "s").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "jam";
   const base = `jam-${slug}-${state.bpm}bpm-${state.sig.replace(/[^0-9]+/g, "-")}`;
   if (directDownload) {
     // Opened outside Claude (e.g. from the repo): a plain download works there.
@@ -1155,12 +2039,16 @@ async function saveMidi() {
 }
 
 buildUI();
-parseInput();
-renderChart();
+parseAll();
+renderSections();
+renderErrors();
+renderFormField();
 renderControls();
+renderPro();
 renderDots(-1);
-showNowChord(lastGood[0]?.symbol || "–");
+showNowChord(firstSymbol());
 bind();
+initAccount();
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && playing) navigator.wakeLock?.request("screen").then((l) => (wakeLock = l)).catch(() => {}); });
 
 (window.claude?.use ? window.claude.use("downloads") : Promise.resolve(null)).then((d) => {
