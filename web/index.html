@@ -231,6 +231,8 @@ body::after {
 .sec:not(.silent) .chart .cell[data-i] { cursor: pointer; }
 .sec:not(.silent) .chart .cell[data-i]:hover { background: var(--sunk); }
 .sec.collapsed .sec-toggle svg { transform: rotate(-90deg); }
+.sec-chords-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sec-chords-head .btn { padding: 7px 11px; font-size: 14px; }
 .sec-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
 .sec-settings { display: grid; gap: 14px; padding-top: 4px; }
 .mini-label { font: 600 12px/1 var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
@@ -340,8 +342,8 @@ dialog::backdrop { background: rgb(10 12 15 / 0.5); }
     <div class="chords-head">
       <label class="label" id="chords-label" for="chords">Chords</label>
       <div class="transpose" role="group" aria-label="Transpose">
-        <button class="btn" id="transpose-down" type="button" aria-label="Transpose down a half step">− ½ step</button>
-        <button class="btn" id="transpose-up" type="button" aria-label="Transpose up a half step">+ ½ step</button>
+        <button class="btn" id="transpose-down" type="button" aria-label="Transpose the whole song down a half step">− ½ step</button>
+        <button class="btn" id="transpose-up" type="button" aria-label="Transpose the whole song up a half step">+ ½ step</button>
       </div>
     </div>
     <div class="sections" id="sections"></div>
@@ -1281,6 +1283,13 @@ function renderSections() {
         <button class="icon-btn sec-remove" type="button" aria-label="Remove section ${i + 1}">${X_ICON}</button>` : ""}
       </div>
       <div class="sec-body" id="sec-body-${s.id}"${s.collapsed ? " hidden" : ""}>
+        ${many ? `<div class="sec-chords-head">
+          <span class="mini-label">Chords</span>
+          <div class="transpose" role="group" aria-label="Transpose section ${i + 1}">
+            <button class="btn sec-transpose" type="button" data-d="-1" aria-label="Transpose section ${i + 1} down a half step">− ½</button>
+            <button class="btn sec-transpose" type="button" data-d="1" aria-label="Transpose section ${i + 1} up a half step">+ ½</button>
+          </div>
+        </div>` : ""}
         <textarea class="sec-chords"${i === 0 ? ' id="chords"' : ""} rows="2" spellcheck="false" autocapitalize="characters" autocomplete="off"${many ? ` aria-label="Chords for section ${i + 1}"` : ""}>${escapeHTML(s.chords)}</textarea>
         <div class="chart"></div>
         <div class="sec-settings">
@@ -1824,15 +1833,22 @@ function removeSection(i) {
   onSongChanged();
 }
 
-function transposeSong(semitones) {
-  // One spelling for the whole song, taken from its first chord.
-  const first = state.sections.find((s) => tokenize(s.chords).length);
-  if (!first) return;
-  const names = spellingFor(first.chords, semitones);
-  for (const s of state.sections) s.chords = transposeText(s.chords, semitones, names);
-  document.querySelectorAll("#sections .sec-chords").forEach((ta, i) => { ta.value = state.sections[i].chords; });
-  state.sections.forEach((_, i) => renderSectionSettings(i));
-  onSongChanged();
+// Moves every section, or just section `only`. Each section is spelled for
+// the key it lands in, from its own first chord, since sections can be in
+// different keys.
+function transposeSong(semitones, only = null) {
+  let changed = false;
+  state.sections.forEach((s, i) => {
+    if (only !== null && i !== only) return;
+    const next = transposeText(s.chords, semitones);
+    if (next === s.chords) return;
+    s.chords = next;
+    const textarea = secEl(i)?.querySelector(".sec-chords");
+    if (textarea) textarea.value = next;
+    renderSectionSettings(i);
+    changed = true;
+  });
+  if (changed) onSongChanged();
 }
 
 // A tempo change only retimes the loop, so it skips rebuilding the notes.
@@ -2182,6 +2198,7 @@ function bind() {
     if (!button) return;
     const i = indexOf(button), s = state.sections[i];
     if (button.classList.contains("sec-toggle")) setCollapsed(i, !s.collapsed);
+    else if (button.classList.contains("sec-transpose")) transposeSong(Number(button.dataset.d), i);
     else if (button.classList.contains("sec-play")) playFrom(i);
     else if (button.classList.contains("tempo-step")) setSectionTempo(i, s.bpm + Number(button.dataset.d));
     else if (button.classList.contains("chip")) setSectionSig(i, button.dataset.v);

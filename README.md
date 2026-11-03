@@ -77,7 +77,8 @@ or serve the `web/` folder from any static host, such as GitHub Pages.
 A song can have up to 12 named sections (A, B, Verse, Chorus, Intro...), each
 with its own chords, tempo and time signature; a new section starts with the
 previous one's tempo and time signature. Each section collapses to a one-line
-summary. The play order lists section names, like `A A B B` or
+summary, and transposes on its own (the buttons by the Chords label move the
+whole song). The play order lists section names, like `A A B B` or
 `Verse Chorus x2 Bridge Chorus`; left empty, each section plays once in
 order.
 
