@@ -225,6 +225,11 @@ body::after {
 }
 .sec.has-error .sec-summary { color: var(--bad); }
 .sec-toggle svg { transition: transform 120ms; }
+.icon-btn.sec-play { color: var(--accent-ink); border-color: var(--accent); }
+.icon-btn.sec-play svg { fill: currentColor; stroke: none; }
+.sec-play:disabled { opacity: 0.35; cursor: default; }
+.sec:not(.silent) .chart .cell[data-i] { cursor: pointer; }
+.sec:not(.silent) .chart .cell[data-i]:hover { background: var(--sunk); }
 .sec.collapsed .sec-toggle svg { transform: rotate(-90deg); }
 .sec-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
 .sec-settings { display: grid; gap: 14px; padding-top: 4px; }
@@ -295,7 +300,9 @@ dialog::backdrop { background: rgb(10 12 15 / 0.5); }
   .tempo-row .step { width: 36px; height: 36px; }
   .tempo-row .unit { display: none; }
   .tempo-row .sec-bpm { width: 58px; }
-  .sec-name { width: 7ch; }
+  .sec-head { gap: 6px; }
+  .sec-name { width: 8ch; padding: 8px 6px; }
+  .sec-head .icon-btn { width: 32px; height: 32px; }
 }
 </style>
 
@@ -1115,7 +1122,7 @@ const EXAMPLES = [
   { name: "Slow intro, fast tune", key: "Am", length: "bar", pro: true, form: "Intro A x2", sections: [
     { name: "Intro", chords: "Am F C G", sig: "4/4", bpm: 72 },
     { name: "A", chords: "Am F C G | Am F E7 E7", sig: "4/4", bpm: 152 }] },
-  { name: "Waltz, 4/4 bridge", key: "G", length: "bar", pro: true, form: "A A B A", sections: [
+  { name: "Waltz with a 4/4 bridge", key: "G", length: "bar", pro: true, form: "A A B A", sections: [
     { name: "A", chords: "G C D7 G | G C D7 G", sig: "3/4", bpm: 144 },
     { name: "B", chords: "Em C G D", sig: "4/4", bpm: 104 }] },
 ];
@@ -1244,6 +1251,7 @@ function parseAll() {
 // ---- Rendering ----
 const $ = (id) => document.getElementById(id);
 const X_ICON = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12"/></svg>';
+const PLAY_ICON = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M4 2.5v9l7.5-4.5z"/></svg>';
 const CHEVRON = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg>';
 function escapeHTML(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
 function chordHTML(symbol) {
@@ -1269,7 +1277,8 @@ function renderSections() {
         <button class="icon-btn sec-toggle" type="button" aria-expanded="${!s.collapsed}" aria-controls="sec-body-${s.id}" aria-label="${s.collapsed ? "Show" : "Hide"} ${label}">${CHEVRON}</button>
         ${many ? `<input class="sec-name" type="text" value="${escapeHTML(s.name)}" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Section ${i + 1} name">` : ""}
         <span class="sec-summary"></span>
-        ${many ? `<button class="icon-btn sec-remove" type="button" aria-label="Remove section ${i + 1}">${X_ICON}</button>` : ""}
+        ${many ? `<button class="icon-btn sec-play" type="button" aria-label="Play from section ${i + 1}">${PLAY_ICON}</button>
+        <button class="icon-btn sec-remove" type="button" aria-label="Remove section ${i + 1}">${X_ICON}</button>` : ""}
       </div>
       <div class="sec-body" id="sec-body-${s.id}"${s.collapsed ? " hidden" : ""}>
         <textarea class="sec-chords"${i === 0 ? ' id="chords"' : ""} rows="2" spellcheck="false" autocapitalize="characters" autocomplete="off"${many ? ` aria-label="Chords for section ${i + 1}"` : ""}>${escapeHTML(s.chords)}</textarea>
@@ -1342,9 +1351,17 @@ function renderCharts() {
     const chart = el.querySelector(".chart");
     chart.style.gridTemplateColumns = `repeat(${half ? 8 : 4}, minmax(0, 1fr))`;
     chart.innerHTML = sec.tokens.map((t, j) =>
-      `<div class="cell${sec.bad.has(j) ? " bad" : ""}${half ? " half" : ""}" data-i="${j}">${chordHTML(t)}</div>`).join("") ||
+      `<div class="cell${sec.bad.has(j) ? " bad" : ""}${half ? " half" : ""}" data-i="${j}" title="Play from here">${chordHTML(t)}</div>`).join("") ||
       `<div class="cell empty">${multi() ? "No chords yet, so this section is skipped." : "Type some chords above."}</div>`;
     el.classList.toggle("has-error", sec.bad.size > 0);
+    // Sections left out of the play order have nothing to jump to.
+    const audible = lastGood.parts.some((p) => p.section === i);
+    el.classList.toggle("silent", !audible);
+    const play = el.querySelector(".sec-play");
+    if (play) {
+      play.disabled = !audible;
+      play.title = audible ? "Play from this section" : "This section isn't in the play order";
+    }
     const nameInput = el.querySelector(".sec-name");
     if (nameInput) nameInput.setAttribute("aria-invalid", sectionNameError(state.sections[i].name.trim()) ? "true" : "false");
   });
@@ -1490,11 +1507,14 @@ function buildUI() {
 }
 
 // ---- Playback ----
-let playing = false, bus = null, gains = {}, timer = null, raf = 0, wakeLock = null, countingIn = false;
+let playing = false, bus = null, gains = {}, timer = null, raf = 0, wakeLock = null;
 // The playhead is a beat position, counted in each section's own beats.
 // (anchorTime, anchorBeat) pins one beat to the audio clock; the tempo map
 // turns beats after it into seconds.
 let anchorTime = 0, anchorBeat = 0, scheduledTo = 0;
+// Playback starts at startBeat. With a count-in, the bar before it
+// (up to countInUntil) clicks in the tempo and meter of countInSeg.
+let startBeat = 0, countInUntil = -Infinity, countInSeg = 0;
 const EMPTY_LOOP = { notes: [], beats: 0, segments: [], cells: [], parts: [] };
 let loop = EMPTY_LOOP;
 
@@ -1513,14 +1533,17 @@ function rebuildLoop() {
 const segmentAt = (local) => loop.segments.find((s) => local < s.end) || loop.segments[loop.segments.length - 1];
 const cellAt = (local) => loop.cells.find((c) => local < c.end) || loop.cells[loop.cells.length - 1];
 const spbOf = (seg) => (60 / seg.bpm) * seg.meter.quartersPerBeat;
-// Seconds per beat at beat `b` (the count-in takes the first section's).
+const countInSegment = () => loop.segments[countInSeg % loop.segments.length];
+// Seconds per beat at beat `b` (the count-in takes the section it leads into).
 function spbAtBeat(b) {
   if (!loop.beats) return 0.5;
+  if (b < countInUntil) return spbOf(countInSegment());
   return spbOf(b < 0 ? loop.segments[0] : segmentAt(mod(b, loop.beats)));
 }
 // The next beat after `b` where the tempo may change.
 function nextBoundary(b) {
   if (!loop.beats) return Infinity;
+  if (b < countInUntil) return countInUntil;
   if (b < 0) return 0;
   const L = loop.beats, k = Math.floor(b / L);
   return k * L + segmentAt(b - k * L).end;
@@ -1542,29 +1565,54 @@ function beatAt(t) {
   }
   return x;
 }
-// Applies a change to the tempo or the loop without moving the playhead.
+// Where beat `b` falls musically: which pass of the loop, which section
+// occurrence, and how many chords into it.
+function locate(b) {
+  const L = loop.beats, k = Math.floor(b / L), local = b - k * L;
+  const index = Math.max(0, loop.segments.findIndex((s) => local < s.end));
+  const seg = loop.segments[index];
+  return { k, index, chords: (local - seg.start) / loop.parts[seg.part].beatsPerChord };
+}
+// The beat for a spot found by locate(), in the loop as it is now.
+function place(spot) {
+  const seg = loop.segments[spot.index % loop.segments.length], part = loop.parts[seg.part];
+  const chords = Math.min(spot.chords, part.chords.length - 1e-6);
+  return spot.k * loop.beats + seg.start + chords * part.beatsPerChord;
+}
+// Applies a change to the song while it plays, keeping the playhead on the
+// same spot: the same section, chord and point in the chord, even when the
+// change alters what a beat is (a new time signature or chord length).
 function holdPlayhead(change) {
   if (!playing) { change(); return; }
-  const now = ctx.currentTime, b = beatAt(now);
+  const now = ctx.currentTime, b = beatAt(now), queuedUntil = timeAt(scheduledTo);
+  const counting = b < countInUntil;
+  // During a count-in, keep it leading into the same spot.
+  const spot = loop.beats ? locate(counting ? countInUntil : Math.max(b, 0)) : null;
   change();
+  let nb = b;
+  if (spot && loop.beats) {
+    const target = place(spot);
+    if (counting) { nb = b + (target - countInUntil); countInUntil = startBeat = target; }
+    else { nb = b < 0 ? b : target; startBeat = Math.min(startBeat, nb); }
+  }
   anchorTime = now;
-  anchorBeat = b;
-  // Notes up to scheduledTo are already queued; never queue them twice.
-  if (scheduledTo < b) scheduledTo = b;
+  anchorBeat = nb;
+  // Notes up to queuedUntil are already queued; never queue that stretch again.
+  scheduledTo = Math.max(nb, beatAt(queuedUntil));
 }
 
 function scheduleRange(b0, b1) {
-  // Count-in clicks for negative beats.
-  const beatsPerBar = loop.segments[0]?.meter.numerator || 4;
-  for (let b = Math.ceil(b0); b < Math.min(b1, 0); b++) {
-    VOICES.drums(master, timeAt(b), 0.1, CLOSED_HAT, b === -beatsPerBar ? 120 : 95);
-  }
   if (!loop.beats) return;
-  const L = loop.beats;
-  for (let k = Math.floor(Math.max(b0, 0) / L); k * L < b1; k++) {
+  // Count-in clicks, accented on the first beat of the bar.
+  const countInStart = countInUntil - countInSegment().meter.numerator;
+  for (let b = Math.ceil(b0); b < Math.min(b1, countInUntil); b++) {
+    if (b >= countInStart) VOICES.drums(master, timeAt(b), 0.1, CLOSED_HAT, b === countInStart ? 120 : 95);
+  }
+  const from = Math.max(b0, startBeat, countInUntil, 0), L = loop.beats;
+  for (let k = Math.floor(from / L); k * L < b1; k++) {
     for (const n of loop.notes) {
       const abs = k * L + n.start;
-      if (abs < b0 || abs < 0) continue;
+      if (abs < from) continue;
       if (abs >= b1) break;
       if (!state.enabled[n.inst]) continue;
       const v = Math.max(1, Math.min(127, n.velocity + Math.floor(Math.random() * 13) - 6));
@@ -1582,18 +1630,39 @@ function tick() {
   if (b - anchorBeat >= 4) { anchorTime = timeAt(b); anchorBeat = b; }
 }
 
-function start() {
-  ensureAudio();
-  if (ctx.state === "suspended") ctx.resume();
-  rebuildLoop();
+// A fresh output for the band. Swapping it out silences whatever the old
+// one still had queued.
+function newBus() {
+  const old = bus;
+  if (old) {
+    old.gain.setTargetAtTime(0, ctx.currentTime, 0.02);
+    setTimeout(() => old.disconnect(), 300);
+  }
   bus = ctx.createGain(); bus.connect(master);
   gains = {};
   for (const inst of INSTRUMENTS) { const g = ctx.createGain(); g.gain.value = levelGain(inst.name); g.connect(bus); gains[inst.name] = g; }
-  countingIn = state.countIn && loop.beats > 0;
+}
+
+// Starts playing at beat `from` of the loop (a count-in first if it's on).
+// `from` is a function so it can be worked out once the loop is built.
+function start(from = () => 0) {
+  ensureAudio();
+  if (ctx.state === "suspended") ctx.resume();
+  rebuildLoop();
+  newBus();
+  startBeat = loop.beats ? from() : 0;
+  countInSeg = loop.beats ? Math.max(0, loop.segments.findIndex((s) => mod(startBeat, loop.beats) < s.end)) : 0;
+  const counting = state.countIn && loop.beats > 0;
+  countInUntil = counting ? startBeat : -Infinity;
   anchorTime = ctx.currentTime + 0.08;
-  anchorBeat = countingIn ? -loop.segments[0].meter.numerator : 0;
+  anchorBeat = counting ? startBeat - countInSegment().meter.numerator : startBeat;
   scheduledTo = anchorBeat;
   playing = true;
+  // Show the chord the band comes in on.
+  if (loop.beats) {
+    const cell = cellAt(mod(startBeat, loop.beats));
+    showNowChord(loop.parts[cell.part].chords[cell.chord].symbol);
+  }
   tick();
   timer = setInterval(tick, 25);
   raf = requestAnimationFrame(animate);
@@ -1620,7 +1689,40 @@ function stop() {
   renderErrors();
 }
 
-function restartIfPlaying() { if (playing) { stop(); start(); } }
+// Cuts straight to beat `target` while playing, with no count-in.
+function cutTo(target) {
+  newBus();
+  startBeat = target;
+  countInUntil = -Infinity;
+  anchorTime = ctx.currentTime + 0.04;
+  anchorBeat = target;
+  scheduledTo = target;
+  lastHighlight = null;
+}
+
+// The beat where section `section` (chord `chord` of it) next plays: the
+// occurrence playing now if it's this section, otherwise the next one.
+function beatForSection(section, chord, now) {
+  if (!loop.beats) return null;
+  const L = loop.beats, k = Math.floor(Math.max(now, 0) / L), local = mod(Math.max(now, 0), L);
+  const hits = loop.segments.filter((s) => loop.parts[s.part].section === section);
+  if (!hits.length) return null;
+  const hit = hits.find((s) => local < s.end) || null;
+  const seg = hit || hits[0], pass = hit ? k : k + 1;
+  const part = loop.parts[seg.part];
+  return pass * L + seg.start + Math.min(chord, part.chords.length - 1) * part.beatsPerChord;
+}
+
+// Plays from section `section` (at chord `chord`): jumps there while
+// playing, or starts there.
+function playFrom(section, chord = 0) {
+  if (!playing) {
+    start(() => beatForSection(section, chord, 0) ?? 0);
+    return;
+  }
+  const target = beatForSection(section, chord, beatAt(ctx.currentTime));
+  if (target !== null) cutTo(target);
+}
 
 function setPlayIcon() {
   $("play").setAttribute("aria-label", playing ? "Stop" : "Play");
@@ -1645,14 +1747,14 @@ function showNowChord(symbol) { const el = $("now-chord"); el.dataset.sym = symb
 function animate() {
   if (!playing) return;
   const b = beatAt(ctx.currentTime);
-  if (b < 0 && !countingIn) {
-    // The moment before the first beat: nothing to show yet.
-  } else if (b < 0) {
-    const meter = loop.segments[0].meter;
-    const beatInBar = Math.floor(b + meter.numerator);
+  if (b < countInUntil) {
+    const meter = countInSegment().meter;
+    const beatInBar = Math.floor(b - (countInUntil - meter.numerator));
     $("where").textContent = `Count-in · ${Math.max(1, beatInBar + 1)}`;
     renderDots(meter, Math.max(0, beatInBar));
     highlight(null);
+  } else if (b < startBeat) {
+    // The moment before the first beat: nothing to show yet.
   } else if (loop.beats) {
     const local = mod(b, loop.beats);
     const cell = cellAt(local), seg = segmentAt(local), part = loop.parts[cell.part];
@@ -1690,7 +1792,7 @@ function afterSongReplaced() {
   renderControls();
   renderLibrary();
   showNowChord(firstSymbol());
-  restartIfPlaying();
+  if (playing) { rebuildLoop(); cutTo(0); }
 }
 
 function loadExample(i) {
@@ -1748,7 +1850,7 @@ function setSectionTempo(i, bpm) {
   renderExamples();
 }
 
-// A time signature change changes what a beat is, so playback starts over.
+// A time signature change changes what a beat is; holdPlayhead keeps the spot.
 function setSectionSig(i, sig) {
   const s = state.sections[i];
   if (sig === s.sig) return;
@@ -1759,8 +1861,8 @@ function setSectionSig(i, sig) {
   renderErrors();
   renderFormField();
   renderExamples();
-  if (!playing) renderDots(firstMeter(), -1);
-  restartIfPlaying();
+  if (playing) holdPlayhead(rebuildLoop);
+  else renderDots(firstMeter(), -1);
 }
 
 function setCollapsed(i, collapsed) {
@@ -2070,10 +2172,17 @@ function bind() {
     if (e.key === "Enter" && e.target.classList.contains("sec-sig-input")) { e.preventDefault(); applySectionSig(indexOf(e.target), e.target, true); e.target.blur(); }
   });
   sections.addEventListener("click", (e) => {
+    // Tapping a chord in the chart plays from that chord.
+    const cell = e.target.closest(".chart .cell[data-i]");
+    if (cell && !cell.closest(".sec").classList.contains("silent")) {
+      playFrom(indexOf(cell), Number(cell.dataset.i));
+      return;
+    }
     const button = e.target.closest("button");
     if (!button) return;
     const i = indexOf(button), s = state.sections[i];
     if (button.classList.contains("sec-toggle")) setCollapsed(i, !s.collapsed);
+    else if (button.classList.contains("sec-play")) playFrom(i);
     else if (button.classList.contains("tempo-step")) setSectionTempo(i, s.bpm + Number(button.dataset.d));
     else if (button.classList.contains("chip")) setSectionSig(i, button.dataset.v);
     else if (button.classList.contains("sec-tap")) {
@@ -2145,7 +2254,8 @@ function bind() {
   $("lengths").addEventListener("click", (e) => {
     const b = e.target.closest(".chip"); if (!b) return;
     state.length = b.dataset.v;
-    parseAll(); renderCharts(); renderControls(); renderFormField(); restartIfPlaying();
+    parseAll(); renderCharts(); renderControls(); renderFormField();
+    if (playing) holdPlayhead(rebuildLoop);
   });
   $("countin").addEventListener("change", (e) => { state.countIn = e.target.checked; persist(); });
   $("repeats").addEventListener("change", (e) => { state.repeats = Number(e.target.value); persist(); });

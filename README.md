@@ -83,7 +83,10 @@ order.
 
 Playback follows the order, each section's tempo and its meter: a section in
 a new time signature starts on a fresh bar, while sections in the same meter
-carry the bar on. The chart highlights the section and chord that's playing,
+carry the bar on. Edits made while the band plays take effect from where it
+is, without starting over, and a chord typo keeps the last version that
+worked playing. Each section's play button, or tapping a chord in its chart,
+jumps playback there. The chart highlights the section and chord that's playing,
 and the saved MIDI file carries a marker plus any tempo or time signature
 change at each section.
 
