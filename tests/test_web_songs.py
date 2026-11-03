@@ -16,7 +16,7 @@ import mido
 WEB_APP = pathlib.Path(__file__).resolve().parent.parent / "web" / "index.html"
 
 EXPORTS = ("parseChord, tokenize, parseTimeSignature, parseForm, renameInForm, removeFromForm, "
-           "sectionNameError, generateSong, buildMidi, transposeText, spellingFor, "
+           "sectionNameError, generateSong, loopRepeats, buildMidi, transposeText, spellingFor, "
            "PLAN, validateTestCard, createTestBilling")
 
 
@@ -90,16 +90,49 @@ class SongTests(unittest.TestCase):
             { name: "A", chords: chords("C G Am"), bpm: null },
           ];
           const song = P.generateSong(parts, m, 4, 2, ["bass"]);
-          return { beats: song.beats, segments: song.segments, cells: song.cells.length };
+          return { beats: song.beats, cells: song.cells.length,
+                   segments: song.segments.map(({ start, end, name, bpm }) => ({ start, end, name, bpm })) };
         """)
         self.assertEqual(result["beats"], 40)
         self.assertEqual(result["cells"], 10)
         self.assertEqual(result["segments"], [
-            {"start": 0, "end": 8, "part": 0, "name": "Intro", "bpm": 72},
-            {"start": 8, "end": 20, "part": 1, "name": "A", "bpm": None},
-            {"start": 20, "end": 28, "part": 0, "name": "Intro", "bpm": 72},
-            {"start": 28, "end": 40, "part": 1, "name": "A", "bpm": None},
+            {"start": 0, "end": 8, "name": "Intro", "bpm": 72},
+            {"start": 8, "end": 20, "name": "A", "bpm": None},
+            {"start": 20, "end": 28, "name": "Intro", "bpm": 72},
+            {"start": 28, "end": 40, "name": "A", "bpm": None},
         ])
+
+    def test_sections_in_different_time_signatures(self):
+        result = run_node("""
+          const chords = (t) => P.tokenize(t).map(P.parseChord);
+          const meter = (sig) => P.parseTimeSignature(sig);
+          const bpc = (m) => m.numerator;
+          const waltz = meter("3/4"), common = meter("4/4"), compound = meter("6/8");
+          const parts = [
+            { name: "A", chords: chords("G D"), bpm: 150, meter: waltz, beatsPerChord: 3 },
+            { name: "B", chords: chords("Em"), bpm: 100, meter: common, beatsPerChord: 2 },
+            { name: "C", chords: chords("C"), bpm: 60, meter: compound, beatsPerChord: 6 },
+          ];
+          const song = P.generateSong(parts, waltz, 3, 1, ["drums"]);
+          const kicks = song.notes.filter((n) => n.pitch === 36).map((n) => n.q);
+          return {
+            segments: song.segments.map(({ start, end, qStart, qEnd, barPos }) => [start, end, qStart, qEnd, barPos]),
+            kicks,
+            sameMeterRepeats: P.loopRepeats([{ chords: chords("C G Am"), meter: common, beatsPerChord: 2 }], common, 2),
+            mixedRepeats: P.loopRepeats(parts, waltz, 3),
+          };
+        """)
+        # Beats are each section's own (quarters, quarters, eighths); q lines them up.
+        self.assertEqual(result["segments"], [
+            [0, 6, 0, 6, 0],
+            [6, 8, 6, 8, 0],     # 4/4 starts a fresh bar
+            [8, 14, 8, 11, 0],   # six eighths = three quarters
+        ])
+        # Kick on each waltz downbeat, beats 1 and 3 of the 4/4 bar, then the 6/8 downbeat.
+        self.assertEqual(result["kicks"], [0, 3, 6, 8])
+        # 3 chords of half a bar end mid-bar, so the loop takes two passes to land on a bar line.
+        self.assertEqual(result["sameMeterRepeats"], 2)
+        self.assertEqual(result["mixedRepeats"], 1)
 
     def test_midi_has_tempo_changes_and_markers(self):
         midi_bytes = run_node("""
@@ -131,6 +164,38 @@ class SongTests(unittest.TestCase):
         # 8 beats at 60 + 16 at 120 + 4 at 180 = 8 + 8 + 1.333 seconds.
         self.assertAlmostEqual(midi.length, 17.333, places=2)
         self.assertEqual([t.name for t in midi.tracks[1:]], ["piano", "drums"])
+
+    def test_midi_changes_time_signature_between_sections(self):
+        midi_bytes = run_node("""
+          const chords = (t) => P.tokenize(t).map(P.parseChord);
+          const waltz = P.parseTimeSignature("3/4"), compound = P.parseTimeSignature("6/8");
+          const parts = [
+            { name: "A", chords: chords("G D"), bpm: 150, meter: waltz, beatsPerChord: 3 },
+            { name: "B", chords: chords("Em C"), bpm: 90, meter: compound, beatsPerChord: 6 },
+          ];
+          return [...P.buildMidi({ parts, meter: waltz, beatsPerChord: 3, repeats: 1, bpm: 150,
+                                   names: ["bass"], humanize: false })];
+        """)
+        with tempfile.NamedTemporaryFile(suffix=".mid") as f:
+            f.write(bytes(midi_bytes))
+            f.flush()
+            midi = mido.MidiFile(f.name)
+        tick, sigs, tempos, notes = 0, [], [], []
+        for msg in midi.tracks[0]:
+            tick += msg.time
+            if msg.type == "time_signature":
+                sigs.append((tick / 480, f"{msg.numerator}/{msg.denominator}"))
+            elif msg.type == "set_tempo":
+                tempos.append((tick / 480, round(mido.tempo2bpm(msg.tempo))))
+        tick = 0
+        for msg in midi.tracks[1]:
+            tick += msg.time
+            if msg.type == "note_on":
+                notes.append(tick / 480)
+        self.assertEqual(sigs, [(0, "3/4"), (6, "6/8")])
+        # Bass once per waltz bar, then on both dotted-quarter pulses of each 6/8 bar.
+        self.assertEqual(notes, [0, 3, 6, 7.5, 9, 10.5])
+        self.assertEqual(tempos, [(0, 150), (6, 90)])
 
 
 @unittest.skipUnless(shutil.which("node"), "Node.js is not installed")

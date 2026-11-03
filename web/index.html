@@ -61,7 +61,8 @@ header { display: grid; gap: 2px; }
 .brand span { color: var(--accent-ink); }
 .tagline { margin: 0; color: var(--muted); }
 
-section { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 14px; min-width: 0; }
+section { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; min-width: 0; }
+.select-wrap select { max-width: 100%; }
 .label {
   font: 600 13px/1 var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
   margin: 0;
@@ -113,9 +114,6 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .hint { color: var(--muted); margin: 0; font-size: 14px; }
 
 /* Tempo */
-.tempo { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
-.bpm { font: 700 44px/1 var(--font-display); font-variant-numeric: tabular-nums; min-width: 3ch; text-align: right; }
-.bpm small { font: 600 14px/1 var(--font-display); letter-spacing: 0.12em; color: var(--muted); margin-left: 4px; }
 .step {
   width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
   font: 600 22px/1 var(--font-body); cursor: pointer;
@@ -131,12 +129,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .seg .chip { font-family: var(--font-display); font-size: 18px; font-weight: 600; padding: 8px 12px; min-width: 52px; text-align: center; }
 .sig-custom { display: flex; align-items: center; gap: 10px; }
 .sig-custom label { color: var(--muted); white-space: nowrap; }
-#sig-input {
-  flex: 1; min-width: 0; max-width: 220px; font: 600 18px/1 var(--font-display); letter-spacing: 0.03em;
+.sig-custom { min-width: 0; }
+.sec-sig-input {
+  flex: 1 1 0; width: 0; min-width: 0; max-width: 220px; font: 600 18px/1 var(--font-display); letter-spacing: 0.03em;
   padding: 9px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
 }
-#sig-input.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-#sig-input[aria-invalid="true"] { border-color: var(--bad); }
 
 /* Band */
 .band { display: grid; gap: 0; }
@@ -213,15 +210,34 @@ body::after {
 
 /* Sections */
 .sections { display: grid; gap: 14px; }
-.sec { display: grid; gap: 10px; min-width: 0; }
-.sec.multi { border: 1px solid var(--line); border-radius: 8px; padding: 12px; transition: border-color 120ms; }
+.sec { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+.sec { border: 1px solid var(--line); border-radius: 8px; padding: 12px; transition: border-color 120ms; }
 .sec.multi.on { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
-.sec-head { display: flex; align-items: center; gap: 8px; }
+.sec.collapsed { padding-block: 8px; }
+.sec-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .sec-name {
   width: 9ch; min-width: 0; font: 700 18px/1 var(--font-display); letter-spacing: 0.04em;
   padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
 }
-.sec-tempo { display: flex; align-items: center; gap: 6px; margin-left: auto; color: var(--muted); font-size: 14px; }
+.sec-summary {
+  flex: 1; min-width: 0; color: var(--muted); font: 600 15px/1.2 var(--font-display); letter-spacing: 0.03em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sec.has-error .sec-summary { color: var(--bad); }
+.sec-toggle svg { transition: transform 120ms; }
+.sec.collapsed .sec-toggle svg { transform: rotate(-90deg); }
+.sec-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+.sec-settings { display: grid; gap: 14px; padding-top: 4px; }
+.mini-label { font: 600 12px/1 var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.tempo-row { display: flex; align-items: center; gap: 8px; }
+.tempo-row .step { width: 40px; height: 40px; font-size: 20px; flex: none; }
+.tempo-row .unit { color: var(--muted); font-size: 14px; }
+.tempo-row .sec-tap { margin-left: auto; padding: 10px 14px; }
+.tempo-row .sec-bpm { width: 64px; padding: 8px 6px; text-align: center; font: 700 22px/1 var(--font-display); }
+.add-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.text-btn { border: 0; background: none; padding: 8px 2px; color: var(--accent-ink); font: 600 15px var(--font-body); cursor: pointer; }
+.sec-sig-input.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.sec-sig-input[aria-invalid="true"] { border-color: var(--bad); }
 .sec-bpm {
   width: 5.5ch; font: 600 16px/1 var(--font-body); font-variant-numeric: tabular-nums; text-align: right;
   padding: 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
@@ -273,7 +289,14 @@ dialog::backdrop { background: rgb(10 12 15 / 0.5); }
 .btn.danger { background: transparent; border-color: var(--bad); color: var(--bad); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
-@media (max-width: 380px) { .cell { font-size: 20px; padding: 8px 6px; } .bpm { font-size: 38px; } }
+@media (max-width: 380px) { .cell { font-size: 20px; padding: 8px 6px; } }
+@media (max-width: 359px) {
+  .tempo-row { gap: 6px; }
+  .tempo-row .step { width: 36px; height: 36px; }
+  .tempo-row .unit { display: none; }
+  .tempo-row .sec-bpm { width: 58px; }
+  .sec-name { width: 7ch; }
+}
 </style>
 
 <div class="app">
@@ -315,7 +338,10 @@ dialog::backdrop { background: rgb(10 12 15 / 0.5); }
       </div>
     </div>
     <div class="sections" id="sections"></div>
-    <div><button class="btn" id="add-section" type="button">+ Add section<span class="pro-tag">Pro</span></button></div>
+    <div class="add-row">
+      <button class="btn" id="add-section" type="button">+ Add section<span class="pro-tag">Pro</span></button>
+      <button class="text-btn" id="collapse-all" type="button" hidden>Collapse all</button>
+    </div>
     <div class="field" id="form-field" hidden>
       <label class="label" for="form">Play order</label>
       <input id="form" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="form-summary">
@@ -326,28 +352,6 @@ dialog::backdrop { background: rgb(10 12 15 / 0.5); }
   </section>
 
   <section aria-label="Feel">
-    <div class="field">
-      <span class="label" id="tempo-label">Tempo</span>
-      <div class="tempo">
-        <button class="step" id="tempo-down" type="button" aria-label="Slower">−</button>
-        <input type="range" id="tempo" min="40" max="240" step="1" value="96" aria-labelledby="tempo-label">
-        <button class="step" id="tempo-up" type="button" aria-label="Faster">+</button>
-      </div>
-      <div class="row" style="justify-content: space-between">
-        <div class="bpm"><span id="bpm-value">96</span><small>BPM</small></div>
-        <button class="btn" id="tap" type="button">Tap tempo</button>
-      </div>
-    </div>
-    <div class="field">
-      <span class="label" id="sig-label">Time signature</span>
-      <div class="seg" id="signatures" role="radiogroup" aria-labelledby="sig-label"></div>
-      <div class="sig-custom">
-        <label for="sig-input">Any other</label>
-        <input id="sig-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text" placeholder="11/8 or 3+2+2/8" aria-describedby="sig-feel">
-      </div>
-      <p class="hint" id="sig-feel"></p>
-      <p class="error" id="sig-error" hidden></p>
-    </div>
     <div class="field">
       <span class="label" id="len-label">Each chord lasts</span>
       <div class="seg" id="lengths" role="radiogroup" aria-labelledby="len-label"></div>
@@ -690,8 +694,8 @@ const INSTRUMENTS = [
 ];
 
 // ---- Songs: sections and play order ----
-// A song is named sections of chords, each at the song tempo or its own,
-// played in the order its form lists them.
+// A song is named sections of chords, each with its own tempo and time
+// signature, played in the order its form lists them.
 const MAX_SECTIONS = 12;
 
 function sectionNameError(name) {
@@ -746,27 +750,57 @@ function removeFromForm(text, name) {
 }
 
 // Every instrument's notes for `parts` played in order, `repeats` times over.
-// A part is { name, chords, bpm }, with bpm null to follow the song tempo.
-// Also returns where each part (segments) and each chord (cells) falls, in beats.
+// A part is { name, chords, bpm, meter, beatsPerChord }; a part without its
+// own meter, chord length or tempo uses `meter`, `beatsPerChord` or the song
+// tempo. Positions are in each part's own beats (`start`) and in quarter
+// notes (`q`), which line up across time signatures. A part in a different
+// meter from the one before starts on a fresh bar; in the same meter the bar
+// carries on. Also returns where each part (segments) and chord (cells) falls.
 function generateSong(parts, meter, beatsPerChord, repeats, names) {
   const notes = [], segments = [], cells = [];
-  let beat = 0;
+  let beat = 0, q = 0, barPos = 0, prevMeter = null;
   for (let r = 0; r < repeats; r++) {
     parts.forEach((part, p) => {
-      const start = beat;
+      const m = part.meter || meter, bpc = part.beatsPerChord || beatsPerChord, qpb = m.quartersPerBeat;
+      if (prevMeter && m.label !== prevMeter) barPos = 0;
+      prevMeter = m.label;
+      const seg = { start: beat, end: beat, qStart: q, qEnd: q, barPos: barPos % m.numerator, part: p, name: part.name || "", bpm: part.bpm || null, meter: m };
       part.chords.forEach((chord, c) => {
         for (const name of names) {
-          for (const n of PATTERNS[name](chord, beatsPerChord, meter, beat % meter.numerator)) {
-            notes.push({ inst: name, start: beat + n.start, duration: n.duration, pitch: n.pitch, velocity: n.velocity });
+          for (const n of PATTERNS[name](chord, bpc, m, barPos % m.numerator)) {
+            notes.push({ inst: name, start: beat + n.start, duration: n.duration, pitch: n.pitch, velocity: n.velocity,
+              q: q + n.start * qpb, quarters: n.duration * qpb });
           }
         }
-        cells.push({ start: beat, end: beat + beatsPerChord, part: p, chord: c });
-        beat += beatsPerChord;
+        cells.push({ start: beat, end: beat + bpc, part: p, chord: c });
+        beat += bpc;
+        q += bpc * qpb;
+        barPos += bpc;
       });
-      segments.push({ start, end: beat, part: p, name: part.name || "", bpm: part.bpm || null });
+      seg.end = beat;
+      seg.qEnd = q;
+      segments.push(seg);
     });
   }
-  return { notes, beats: beat, segments, cells };
+  return { notes, beats: beat, quarters: q, segments, cells };
+}
+
+// How many passes a loop needs so its end meets its start on a bar line.
+function loopRepeats(parts, meter, beatsPerChord) {
+  const first = parts[0].meter || meter, last = parts[parts.length - 1].meter || meter;
+  // Looping back into a different meter starts a fresh bar anyway.
+  if (first.label !== last.label) return 1;
+  let barPos = 0, prev = null;
+  for (let r = 1; r <= 64; r++) {
+    for (const part of parts) {
+      const m = part.meter || meter;
+      if (prev && m.label !== prev) barPos = 0;
+      prev = m.label;
+      barPos += part.chords.length * (part.beatsPerChord || beatsPerChord);
+    }
+    if (barPos % last.numerator === 0) return r;
+  }
+  return 1;
 }
 
 // Every instrument's notes for `repeats` passes of one progression.
@@ -798,16 +832,20 @@ function trackBytes(events) {
 const textMeta = (kind, text) => [0xff, kind, ...varlen(text.length), ...[...text].map((c) => c.charCodeAt(0) & 0x7f)];
 
 // `parts` is a song's sections in play order (see generateSong); pass
-// `progression` instead for a plain chord list. Sections get a marker, and a
-// tempo change wherever the tempo moves.
+// `progression` instead for a plain chord list. Sections get a marker, plus a
+// tempo or time signature change wherever those move.
 function buildMidi({ parts, progression, meter, beatsPerChord, repeats, bpm, names, humanize = true }) {
-  const tpb = TICKS_PER_BEAT * meter.quartersPerBeat;
+  const ticks = (quarters) => Math.round(quarters * TICKS_PER_BEAT);
   parts = parts || [{ name: "", chords: progression, bpm: null }];
   const song = generateSong(parts, meter, beatsPerChord, repeats, names);
-  const conductor = [[0, 0, [0xff, 0x58, 4, meter.numerator, Math.log2(meter.denominator), 24, 8]]];
-  let lastBpm = null;
+  const conductor = [];
+  let lastBpm = null, lastMeter = null;
   for (const seg of song.segments) {
-    const tick = Math.round(seg.start * tpb);
+    const tick = ticks(seg.qStart);
+    if (seg.meter.label !== lastMeter) {
+      conductor.push([tick, 0, [0xff, 0x58, 4, seg.meter.numerator, Math.log2(seg.meter.denominator), 24, 8]]);
+      lastMeter = seg.meter.label;
+    }
     const segBpm = seg.bpm || bpm;
     if (segBpm !== lastBpm) {
       const micros = Math.round(60000000 / segBpm);
@@ -828,8 +866,8 @@ function buildMidi({ parts, progression, meter, beatsPerChord, repeats, bpm, nam
     ];
     for (const n of notes) {
       if (n.inst !== name) continue;
-      const start = Math.round(n.start * tpb);
-      const end = start + Math.max(1, Math.round(n.duration * tpb));
+      const start = ticks(n.q);
+      const end = start + Math.max(1, ticks(n.quarters));
       let vel = n.velocity + (humanize ? Math.floor(Math.random() * 13) - 6 : 0);
       vel = Math.max(1, Math.min(127, vel));
       events.push([start, 2, [0x90 | ch, n.pitch, vel]]);
@@ -1056,7 +1094,7 @@ const VOICES = {
 
 // ---- Examples ----
 const single = (name, key, chords, sig, bpm) =>
-  ({ name, key, sig, bpm, length: "bar", form: "", pro: false, sections: [{ name: "A", chords, bpm: null }] });
+  ({ name, key, length: "bar", form: "", pro: false, sections: [{ name: "A", chords, sig, bpm }] });
 const EXAMPLES = [
   single("Pop I–V–vi–IV", "C", "C G Am F", "4/4", 96),
   single("12-bar blues", "A", "A7 D7 A7 A7 | D7 D7 A7 A7 | E7 D7 A7 E7", "4/4", 112),
@@ -1066,52 +1104,67 @@ const EXAMPLES = [
   single("Slow ballad", "Em", "Em C G D", "6/8", 66),
   single("Minor vamp", "Ebm", "Ebm7 Bbm7", "5/4", 168),
   single("Balkan dance", "Dm", "Dm Dm Gm A7", "3+2+2/8", 150),
-  { name: "Fiddle tune", key: "D", sig: "4/4", bpm: 112, length: "bar", pro: true, form: "A A B B", sections: [
-    { name: "A", chords: "D G D A | D G A D", bpm: null },
-    { name: "B", chords: "Bm G D A | Bm G A D", bpm: null }] },
-  { name: "Verse, chorus, bridge", key: "C", sig: "4/4", bpm: 100, length: "bar", pro: true,
+  { name: "Fiddle tune", key: "D", length: "bar", pro: true, form: "A A B B", sections: [
+    { name: "A", chords: "D G D A | D G A D", sig: "4/4", bpm: 112 },
+    { name: "B", chords: "Bm G D A | Bm G A D", sig: "4/4", bpm: 112 }] },
+  { name: "Verse, chorus, bridge", key: "C", length: "bar", pro: true,
     form: "Verse Verse Chorus Verse Chorus Bridge Chorus x2", sections: [
-    { name: "Verse", chords: "C Am F G", bpm: null },
-    { name: "Chorus", chords: "F G C Am | F G C C", bpm: null },
-    { name: "Bridge", chords: "Dm Em F G", bpm: null }] },
-  { name: "Slow intro, fast tune", key: "Am", sig: "4/4", bpm: 152, length: "bar", pro: true, form: "Intro A x2", sections: [
-    { name: "Intro", chords: "Am F C G", bpm: 72 },
-    { name: "A", chords: "Am F C G | Am F E7 E7", bpm: null }] },
+    { name: "Verse", chords: "C Am F G", sig: "4/4", bpm: 100 },
+    { name: "Chorus", chords: "F G C Am | F G C C", sig: "4/4", bpm: 100 },
+    { name: "Bridge", chords: "Dm Em F G", sig: "4/4", bpm: 100 }] },
+  { name: "Slow intro, fast tune", key: "Am", length: "bar", pro: true, form: "Intro A x2", sections: [
+    { name: "Intro", chords: "Am F C G", sig: "4/4", bpm: 72 },
+    { name: "A", chords: "Am F C G | Am F E7 E7", sig: "4/4", bpm: 152 }] },
+  { name: "Waltz, 4/4 bridge", key: "G", length: "bar", pro: true, form: "A A B A", sections: [
+    { name: "A", chords: "G C D7 G | G C D7 G", sig: "3/4", bpm: 144 },
+    { name: "B", chords: "Em C G D", sig: "4/4", bpm: 104 }] },
 ];
-const exampleLabel = (ex, sig, bpm, shift = 0) => `${ex.name} in ${keyName(ex.key, shift)} · ${sig} · ${bpm} bpm`;
+// Single-section examples show their time signature and tempo; the others, how many sections.
+function exampleLabel(ex, shift = 0, current = null) {
+  const key = `${ex.name} in ${keyName(ex.key, shift)}`;
+  if (ex.sections.length > 1) return `${key} · ${ex.sections.length} sections`;
+  const s = current || ex.sections[0];
+  return `${key} · ${s.sig} · ${s.bpm} bpm`;
+}
 const SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "12/8", "5/4", "7/8"];
 const LENGTHS = [["half", "½ bar"], ["bar", "1 bar"], ["two", "2 bars"]];
 
 // ---- State ----
 let nextSectionId = 1;
-// `formName` is the name the play order uses for this section, so renaming
-// the section can rename it there too.
-const newSection = (name, chords = "", bpm = null) => ({ id: nextSectionId++, name, formName: name, chords, bpm });
+// Each section has its own tempo and time signature. `formName` is the name
+// the play order uses for it, so renaming the section can rename it there too.
+const newSection = (name, chords = "", sig = "4/4", bpm = 100) =>
+  ({ id: nextSectionId++, name, formName: name, chords, sig, bpm, collapsed: false });
 const validBpm = (v) => {
   const n = Number(v);
   return v !== null && v !== "" && Number.isFinite(n) && n >= 40 && n <= 240 ? Math.round(n) : null;
 };
+const clampBpm = (v) => Math.max(40, Math.min(240, Math.round(v)));
+const validSig = (v) => { try { return parseTimeSignature(v).label; } catch (e) { return null; } };
 
 const state = {
-  title: "", sections: [], form: "", sig: "4/4", bpm: 96, length: "bar", countIn: true, repeats: 4,
+  title: "", sections: [], form: "", length: "bar", countIn: true, repeats: 4,
   enabled: { piano: true, guitar: true, strings: true, bass: true, drums: true },
   levels: { piano: 80, guitar: 70, strings: 60, bass: 80, drums: 75 },
 };
 
 // Loads a song (an example or a saved jam) into the editor. Saved data is
-// checked field by field, since it comes back from storage.
+// checked field by field, since it comes back from storage. Jams saved before
+// sections had their own settings carry a song-wide sig and bpm instead.
 function applySong(song) {
   const sections = Array.isArray(song.sections) ? song.sections.slice(0, MAX_SECTIONS) : [];
-  state.sections = sections.map((s) => newSection(String(s.name ?? "A").slice(0, 16), String(s.chords ?? "").slice(0, 4000), validBpm(s.bpm)));
+  const songSig = validSig(song.sig) || "4/4", songBpm = validBpm(song.bpm) ?? 100;
+  state.sections = sections.map((s) => newSection(
+    String(s.name ?? "A").slice(0, 16), String(s.chords ?? "").slice(0, 4000),
+    validSig(s.sig) || songSig, validBpm(s.bpm) ?? songBpm));
   if (!state.sections.length) state.sections = [newSection("A", "C G Am F")];
   state.form = String(song.form ?? "").slice(0, 600);
-  try { state.sig = parseTimeSignature(song.sig).label; } catch (e) { state.sig = "4/4"; }
-  state.bpm = validBpm(song.bpm) ?? 100;
   state.length = ["half", "bar", "two"].includes(song.length) ? song.length : "bar";
 }
 
 // Every visit opens on a random example, ready to play.
-applySong(EXAMPLES.filter((ex) => !ex.pro)[Math.floor(Math.random() * EXAMPLES.filter((ex) => !ex.pro).length)]);
+const FREE_EXAMPLES = EXAMPLES.filter((ex) => !ex.pro);
+applySong(FREE_EXAMPLES[Math.floor(Math.random() * FREE_EXAMPLES.length)]);
 
 try {
   const saved = JSON.parse(localStorage.getItem("jam-track-settings") || "null");
@@ -1128,14 +1181,14 @@ function persist() {
   try { localStorage.setItem("jam-track-settings", JSON.stringify({ countIn, repeats, enabled, levels })); } catch (e) { /* ignore */ }
 }
 
-let meterCache = { sig: null, meter: null };
-function meterOf() {
-  if (meterCache.sig !== state.sig) {
+const meterCache = new Map();
+function meterFor(sig) {
+  if (!meterCache.has(sig)) {
     let meter;
-    try { meter = parseTimeSignature(state.sig); } catch (e) { meter = makeMeter(4, 4); }
-    meterCache = { sig: state.sig, meter };
+    try { meter = parseTimeSignature(sig); } catch (e) { meter = makeMeter(4, 4); }
+    meterCache.set(sig, meter);
   }
-  return meterCache.meter;
+  return meterCache.get(sig);
 }
 const NOTE_VALUES = { 1: "whole", 2: "half", 4: "quarter", 8: "eighth", 16: "16th", 32: "32nd" };
 function describeMeter(m) {
@@ -1181,13 +1234,17 @@ function parseAll() {
   const audible = order.filter((i) => secs[i].chords.length);
   parsed = { secs, order, errors, skipped };
   if (!errors.length && audible.length) {
-    lastGood = { parts: audible.map((i) => ({ name: many ? names[i] : "", chords: secs[i].chords, bpm: many ? state.sections[i].bpm : null, section: i })) };
+    lastGood = { parts: audible.map((i) => {
+      const s = state.sections[i], meter = meterFor(s.sig);
+      return { name: many ? names[i] : "", chords: secs[i].chords, bpm: s.bpm, meter, beatsPerChord: beatsPerChord(meter), section: i };
+    }) };
   }
 }
 
 // ---- Rendering ----
 const $ = (id) => document.getElementById(id);
 const X_ICON = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12"/></svg>';
+const CHEVRON = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg>';
 function escapeHTML(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
 function chordHTML(symbol) {
   const m = CHORD_RE.exec(symbol);
@@ -1198,23 +1255,83 @@ function chordHTML(symbol) {
   return `${l}${acc(a)}${qual}${bl ? `<span class="slash">/${bl}${acc(ba)}</span>` : ""}`;
 }
 const firstSymbol = () => lastGood.parts[0]?.chords[0]?.symbol || "–";
+const secEl = (i) => document.querySelector(`#sections .sec[data-index="${i}"]`);
 
 // Rebuilds the section editors. Typing never calls this (it would drop focus);
-// it runs when sections are added, removed or loaded.
+// it runs when sections are added, removed, collapsed or loaded.
 function renderSections() {
   const many = multi();
-  $("sections").innerHTML = state.sections.map((s, i) => `
-    <div class="sec${many ? " multi" : ""}" data-index="${i}">
-      ${many ? `<div class="sec-head">
-        <input class="sec-name" type="text" value="${escapeHTML(s.name)}" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Section ${i + 1} name">
-        <label class="sec-tempo"><input class="sec-bpm" type="number" inputmode="numeric" min="40" max="240" step="1" value="${s.bpm ?? ""}" placeholder="${state.bpm}" aria-label="Section ${i + 1} tempo. Leave it empty to follow the song tempo."><span>bpm</span></label>
-        <button class="icon-btn sec-remove" type="button" aria-label="Remove section ${i + 1}">${X_ICON}</button>
-      </div>` : ""}
-      <textarea class="sec-chords"${i === 0 ? ' id="chords"' : ""} rows="2" spellcheck="false" autocapitalize="characters" autocomplete="off"${many ? ` aria-label="Chords for section ${i + 1}"` : ""}>${escapeHTML(s.chords)}</textarea>
-      <div class="chart"></div>
-    </div>`).join("");
+  $("sections").innerHTML = state.sections.map((s, i) => {
+    const label = many ? `section ${i + 1}` : "the song";
+    return `
+    <div class="sec${many ? " multi" : ""}${s.collapsed ? " collapsed" : ""}" data-index="${i}">
+      <div class="sec-head">
+        <button class="icon-btn sec-toggle" type="button" aria-expanded="${!s.collapsed}" aria-controls="sec-body-${s.id}" aria-label="${s.collapsed ? "Show" : "Hide"} ${label}">${CHEVRON}</button>
+        ${many ? `<input class="sec-name" type="text" value="${escapeHTML(s.name)}" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Section ${i + 1} name">` : ""}
+        <span class="sec-summary"></span>
+        ${many ? `<button class="icon-btn sec-remove" type="button" aria-label="Remove section ${i + 1}">${X_ICON}</button>` : ""}
+      </div>
+      <div class="sec-body" id="sec-body-${s.id}"${s.collapsed ? " hidden" : ""}>
+        <textarea class="sec-chords"${i === 0 ? ' id="chords"' : ""} rows="2" spellcheck="false" autocapitalize="characters" autocomplete="off"${many ? ` aria-label="Chords for section ${i + 1}"` : ""}>${escapeHTML(s.chords)}</textarea>
+        <div class="chart"></div>
+        <div class="sec-settings">
+          <div class="field">
+            <span class="mini-label">Tempo</span>
+            <div class="tempo-row">
+              <button class="step tempo-step" type="button" data-d="-1" aria-label="Slower">−</button>
+              <input class="sec-bpm" type="number" inputmode="numeric" min="40" max="240" step="1" value="${s.bpm}" aria-label="Tempo for ${label}, in beats per minute">
+              <span class="unit">bpm</span>
+              <button class="step tempo-step" type="button" data-d="1" aria-label="Faster">+</button>
+              <button class="btn sec-tap" type="button">Tap</button>
+            </div>
+            <input class="sec-range" type="range" min="40" max="240" step="1" value="${s.bpm}" aria-label="Tempo for ${label}">
+          </div>
+          <div class="field">
+            <span class="mini-label">Time signature</span>
+            <div class="seg sec-sigs" role="radiogroup" aria-label="Time signature for ${label}">
+              ${SIGNATURES.map((sig) => `<button type="button" role="radio" class="chip" data-v="${sig}">${sig}</button>`).join("")}
+            </div>
+            <div class="sig-custom">
+              <label for="sig-${s.id}">Any other</label>
+              <input class="sec-sig-input" id="sig-${s.id}" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="11/8 or 3+2+2/8">
+            </div>
+            <p class="hint sec-feel"></p>
+            <p class="error sec-sig-error" hidden></p>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
   $("add-section").disabled = state.sections.length >= MAX_SECTIONS;
+  $("collapse-all").hidden = !many;
+  state.sections.forEach((_, i) => renderSectionSettings(i));
   renderCharts();
+}
+
+// A section's header summary, tempo and time signature controls.
+function renderSectionSettings(i) {
+  const s = state.sections[i], el = secEl(i);
+  if (!el) return;
+  const preview = s.chords.trim().replace(/\s*\|\s*/g, " | ").replace(/\s+/g, " ");
+  el.querySelector(".sec-summary").textContent =
+    `${s.collapsed && preview ? preview + " · " : ""}${s.sig} · ${s.bpm} bpm`;
+  for (const input of el.querySelectorAll(".sec-bpm, .sec-range")) {
+    if (document.activeElement !== input) input.value = s.bpm;
+  }
+  const onChip = SIGNATURES.includes(s.sig);
+  for (const chip of el.querySelectorAll(".sec-sigs .chip")) {
+    const on = chip.dataset.v === s.sig;
+    chip.setAttribute("aria-checked", on ? "true" : "false");
+    chip.setAttribute("aria-pressed", on);
+  }
+  const sigInput = el.querySelector(".sec-sig-input");
+  if (document.activeElement !== sigInput) {
+    sigInput.value = onChip ? "" : s.sig;
+    sigInput.removeAttribute("aria-invalid");
+    el.querySelector(".sec-sig-error").hidden = true;
+  }
+  sigInput.classList.toggle("active", !onChip);
+  el.querySelector(".sec-feel").textContent = describeMeter(meterFor(s.sig));
 }
 
 function renderCharts() {
@@ -1227,6 +1344,7 @@ function renderCharts() {
     chart.innerHTML = sec.tokens.map((t, j) =>
       `<div class="cell${sec.bad.has(j) ? " bad" : ""}${half ? " half" : ""}" data-i="${j}">${chordHTML(t)}</div>`).join("") ||
       `<div class="cell empty">${multi() ? "No chords yet, so this section is skipped." : "Type some chords above."}</div>`;
+    el.classList.toggle("has-error", sec.bad.size > 0);
     const nameInput = el.querySelector(".sec-name");
     if (nameInput) nameInput.setAttribute("aria-invalid", sectionNameError(state.sections[i].name.trim()) ? "true" : "false");
   });
@@ -1263,31 +1381,29 @@ function renderFormField() {
     summary.textContent = "Section names in the order they play. Write x2 after a name to repeat it.";
     return;
   }
-  const meter = meterOf(), bpc = beatsPerChord(meter);
-  let beats = 0, seconds = 0;
+  let bars = 0, seconds = 0;
   for (const p of lastGood.parts) {
-    const b = p.chords.length * bpc;
-    beats += b;
-    seconds += b * (60 / (p.bpm || state.bpm)) * meter.quartersPerBeat;
+    const beats = p.chords.length * p.beatsPerChord;
+    bars += beats / p.meter.numerator;
+    seconds += beats * (60 / p.bpm) * p.meter.quartersPerBeat;
   }
-  const bars = beats / meter.numerator;
   const barsText = Number.isInteger(bars) ? `${bars} bar${bars === 1 ? "" : "s"}` : `${+bars.toFixed(1)} bars`;
   const skipped = parsed.skipped.map((i) => state.sections[i].name.trim());
   const skipText = skipped.length ? ` ${skipped.join(" and ")} ${skipped.length === 1 ? "has" : "have"} no chords yet, so ${skipped.length === 1 ? "it's" : "they're"} skipped.` : "";
   summary.textContent = `Plays ${lastGood.parts.map((p) => p.name).join(" ")}. ${barsText}, ${formatDuration(seconds)} each time through.${skipText}`;
 }
 
-function renderDots(activeBeat) {
-  const meter = meterOf();
+function renderDots(meter, activeBeat) {
   const starts = new Set(meter.groups.map((g) => g[0]));
   const dots = $("dots");
-  if (dots.childElementCount !== meter.numerator || dots.dataset.sig !== state.sig) {
-    dots.dataset.sig = state.sig;
+  if (dots.dataset.sig !== meter.label) {
+    dots.dataset.sig = meter.label;
     dots.classList.toggle("dense", meter.numerator > 12);
     dots.innerHTML = Array.from({ length: meter.numerator }, (_, i) => `<span class="dot${starts.has(i) ? " group" : ""}"></span>`).join("");
   }
   [...dots.children].forEach((d, i) => d.classList.toggle("on", i === activeBeat));
 }
+const firstMeter = () => (lastGood.parts[0]?.meter || meterFor(state.sections[0].sig));
 
 // Which example the song is (in any key), so the dropdown can name it.
 function matchExample() {
@@ -1314,32 +1430,19 @@ function matchExample() {
 function renderExamples() {
   const { index, shift } = matchExample();
   const select = $("presets");
-  // The chosen example shows the key, tempo and meter it's playing in now; the rest show their own.
+  // The chosen example shows the key, time signature and tempo it's in now; the rest show their own.
   EXAMPLES.forEach((ex, i) => {
     const option = select.querySelector(`option[value="${i}"]`);
-    const text = i === index ? exampleLabel(ex, state.sig, state.bpm, shift) : exampleLabel(ex, ex.sig, ex.bpm);
+    const text = i === index ? exampleLabel(ex, shift, state.sections[0]) : exampleLabel(ex);
     if (option.text !== text) option.text = text;
   });
   select.value = index < 0 ? "" : String(index);
 }
 
 function renderControls() {
-  $("bpm-value").textContent = state.bpm;
-  $("tempo").value = state.bpm;
   $("countin").checked = state.countIn;
   $("repeats").value = String(state.repeats);
-  document.querySelectorAll(".sec-bpm").forEach((input) => { input.placeholder = state.bpm; });
-  const onChip = SIGNATURES.includes(state.sig);
-  for (const b of $("signatures").children) b.setAttribute("aria-checked", b.dataset.v === state.sig ? "true" : "false"), b.setAttribute("aria-pressed", b.dataset.v === state.sig);
-  const sigInput = $("sig-input");
-  if (document.activeElement !== sigInput) {
-    sigInput.value = onChip ? "" : state.sig;
-    sigInput.removeAttribute("aria-invalid");
-    $("sig-error").hidden = true;
-  }
-  sigInput.classList.toggle("active", !onChip);
-  $("sig-feel").textContent = describeMeter(meterOf());
-  if (!playing) renderDots(-1);
+  if (!playing) renderDots(firstMeter(), -1);
   for (const b of $("lengths").children) b.setAttribute("aria-checked", b.dataset.v === state.length ? "true" : "false"), b.setAttribute("aria-pressed", b.dataset.v === state.length);
   renderExamples();
   for (const inst of INSTRUMENTS) {
@@ -1373,10 +1476,9 @@ function renderLibrary() {
 }
 
 function buildUI() {
-  const options = (pro) => EXAMPLES.map((ex, i) => (ex.pro === pro ? `<option value="${i}">${escapeHTML(exampleLabel(ex, ex.sig, ex.bpm))}</option>` : "")).join("");
+  const options = (pro) => EXAMPLES.map((ex, i) => (ex.pro === pro ? `<option value="${i}">${escapeHTML(exampleLabel(ex))}</option>` : "")).join("");
   $("presets").innerHTML = `<option value="" disabled>Your own chords</option>` +
     `<optgroup label="Examples">${options(false)}</optgroup><optgroup label="Pro: songs in sections">${options(true)}</optgroup>`;
-  $("signatures").innerHTML = SIGNATURES.map((s) => `<button type="button" role="radio" class="chip" data-v="${s}">${s}</button>`).join("");
   $("lengths").innerHTML = LENGTHS.map(([v, l]) => `<button type="button" role="radio" class="chip" data-v="${v}" style="font-family: var(--font-body); font-size: 15px">${l}</button>`).join("");
   $("band").innerHTML = INSTRUMENTS.map((inst) => `
     <div class="inst" id="row-${inst.name}">
@@ -1389,8 +1491,9 @@ function buildUI() {
 
 // ---- Playback ----
 let playing = false, bus = null, gains = {}, timer = null, raf = 0, wakeLock = null, countingIn = false;
-// The playhead is a beat position. (anchorTime, anchorBeat) pins one beat to
-// the audio clock; the tempo map turns beats after it into seconds.
+// The playhead is a beat position, counted in each section's own beats.
+// (anchorTime, anchorBeat) pins one beat to the audio clock; the tempo map
+// turns beats after it into seconds.
 let anchorTime = 0, anchorBeat = 0, scheduledTo = 0;
 const EMPTY_LOOP = { notes: [], beats: 0, segments: [], cells: [], parts: [] };
 let loop = EMPTY_LOOP;
@@ -1398,24 +1501,21 @@ let loop = EMPTY_LOOP;
 function levelGain(name) { return state.enabled[name] ? Math.pow(state.levels[name] / 80, 2) : 0; }
 
 function rebuildLoop() {
-  const meter = meterOf(), bpc = beatsPerChord(meter), parts = lastGood.parts;
+  const parts = lastGood.parts;
   if (!parts.length) { loop = EMPTY_LOOP; return; }
-  const passBeats = parts.reduce((n, p) => n + p.chords.length, 0) * bpc;
-  // Repeat the song until it ends on a bar line so every pass loops cleanly.
-  let reps = 1;
-  while ((reps * passBeats) % meter.numerator !== 0) reps++;
-  const song = generateSong(parts, meter, bpc, reps, INSTRUMENTS.map((i) => i.name));
+  const meter = parts[0].meter, bpc = parts[0].beatsPerChord;
+  const song = generateSong(parts, meter, bpc, loopRepeats(parts, meter, bpc), INSTRUMENTS.map((i) => i.name));
   song.notes.sort((a, b) => a.start - b.start);
   loop = { ...song, parts };
 }
 
-// ---- Tempo map: each section plays at its own tempo or the song's ----
+// ---- Tempo map: every section plays at its own tempo and beat length ----
 const segmentAt = (local) => loop.segments.find((s) => local < s.end) || loop.segments[loop.segments.length - 1];
 const cellAt = (local) => loop.cells.find((c) => local < c.end) || loop.cells[loop.cells.length - 1];
-const spbOf = (seg) => (60 / ((seg && seg.bpm) || state.bpm)) * meterOf().quartersPerBeat;
-// Seconds per beat at beat `b` (the count-in takes the first section's tempo).
+const spbOf = (seg) => (60 / seg.bpm) * seg.meter.quartersPerBeat;
+// Seconds per beat at beat `b` (the count-in takes the first section's).
 function spbAtBeat(b) {
-  if (!loop.beats) return spbOf(null);
+  if (!loop.beats) return 0.5;
   return spbOf(b < 0 ? loop.segments[0] : segmentAt(mod(b, loop.beats)));
 }
 // The next beat after `b` where the tempo may change.
@@ -1454,8 +1554,8 @@ function holdPlayhead(change) {
 }
 
 function scheduleRange(b0, b1) {
-  const beatsPerBar = meterOf().numerator;
   // Count-in clicks for negative beats.
+  const beatsPerBar = loop.segments[0]?.meter.numerator || 4;
   for (let b = Math.ceil(b0); b < Math.min(b1, 0); b++) {
     VOICES.drums(master, timeAt(b), 0.1, CLOSED_HAT, b === -beatsPerBar ? 120 : 95);
   }
@@ -1489,9 +1589,9 @@ function start() {
   bus = ctx.createGain(); bus.connect(master);
   gains = {};
   for (const inst of INSTRUMENTS) { const g = ctx.createGain(); g.gain.value = levelGain(inst.name); g.connect(bus); gains[inst.name] = g; }
+  countingIn = state.countIn && loop.beats > 0;
   anchorTime = ctx.currentTime + 0.08;
-  countingIn = state.countIn;
-  anchorBeat = countingIn ? -meterOf().numerator : 0;
+  anchorBeat = countingIn ? -loop.segments[0].meter.numerator : 0;
   scheduledTo = anchorBeat;
   playing = true;
   tick();
@@ -1515,7 +1615,7 @@ function stop() {
   setPlayIcon();
   highlight(null);
   $("where").textContent = "Ready";
-  renderDots(-1);
+  renderDots(firstMeter(), -1);
   showNowChord(firstSymbol());
   renderErrors();
 }
@@ -1535,7 +1635,7 @@ function highlight(h) {
   document.querySelectorAll("#sections .cell.now").forEach((c) => c.classList.remove("now"));
   document.querySelectorAll("#sections .sec.on").forEach((c) => c.classList.remove("on"));
   if (!h) return;
-  const sec = document.querySelector(`#sections .sec[data-index="${h.section}"]`);
+  const sec = secEl(h.section);
   if (!sec) return;
   sec.classList.add("on");
   sec.querySelector(`.cell[data-i="${h.chord}"]`)?.classList.add("now");
@@ -1545,21 +1645,22 @@ function showNowChord(symbol) { const el = $("now-chord"); el.dataset.sym = symb
 function animate() {
   if (!playing) return;
   const b = beatAt(ctx.currentTime);
-  const meter = meterOf();
   if (b < 0 && !countingIn) {
     // The moment before the first beat: nothing to show yet.
   } else if (b < 0) {
+    const meter = loop.segments[0].meter;
     const beatInBar = Math.floor(b + meter.numerator);
     $("where").textContent = `Count-in · ${Math.max(1, beatInBar + 1)}`;
-    renderDots(Math.max(0, beatInBar));
+    renderDots(meter, Math.max(0, beatInBar));
     highlight(null);
   } else if (loop.beats) {
     const local = mod(b, loop.beats);
     const cell = cellAt(local), seg = segmentAt(local), part = loop.parts[cell.part];
-    const bar = Math.floor((local - seg.start) / meter.numerator) + 1;
-    const beatInBar = mod(Math.floor(b), meter.numerator);
+    const n = seg.meter.numerator, intoSection = seg.barPos + (local - seg.start);
+    const bar = Math.floor(intoSection / n) - Math.floor(seg.barPos / n) + 1;
+    const beatInBar = mod(Math.floor(intoSection), n);
     $("where").textContent = `${part.name ? part.name + " · " : ""}Bar ${bar} · ${beatInBar + 1}`;
-    renderDots(beatInBar);
+    renderDots(seg.meter, beatInBar);
     const sym = part.chords[cell.chord]?.symbol;
     if (sym && $("now-chord").dataset.sym !== sym) showNowChord(sym);
     // Only point at the chart when it still matches what is playing.
@@ -1576,7 +1677,7 @@ function onSongChanged() {
   renderFormField();
   renderExamples();
   if (playing) holdPlayhead(rebuildLoop);
-  else showNowChord(firstSymbol());
+  else { showNowChord(firstSymbol()); renderDots(firstMeter(), -1); }
 }
 
 // Puts a whole new song on screen: an example, a saved jam.
@@ -1605,15 +1706,18 @@ function addSection() {
   const name = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].find((l) => !used.has(l.toLowerCase())) || `Part${state.sections.length + 1}`;
   // With a play order written out, add the new section to the end so it's heard.
   if (state.form.trim()) state.form = `${state.form.trim()} ${name}`;
-  state.sections.push(newSection(name));
+  // A new section starts with the last one's tempo and time signature.
+  const last = state.sections[state.sections.length - 1];
+  state.sections.push(newSection(name, "", last.sig, last.bpm));
   renderSections();
   onSongChanged();
-  document.querySelector(`#sections .sec[data-index="${state.sections.length - 1}"] .sec-chords`)?.focus();
+  secEl(state.sections.length - 1)?.querySelector(".sec-chords")?.focus();
 }
 
 function removeSection(i) {
   const [removed] = state.sections.splice(i, 1);
   state.form = state.sections.length > 1 ? removeFromForm(state.form, removed.formName) : "";
+  if (state.sections.length === 1) state.sections[0].collapsed = false;
   renderSections();
   onSongChanged();
 }
@@ -1625,13 +1729,54 @@ function transposeSong(semitones) {
   const names = spellingFor(first.chords, semitones);
   for (const s of state.sections) s.chords = transposeText(s.chords, semitones, names);
   document.querySelectorAll("#sections .sec-chords").forEach((ta, i) => { ta.value = state.sections[i].chords; });
+  state.sections.forEach((_, i) => renderSectionSettings(i));
   onSongChanged();
 }
 
-function setTempo(bpm) {
-  holdPlayhead(() => { state.bpm = Math.max(40, Math.min(240, Math.round(bpm))); });
-  renderControls();
+// A tempo change only retimes the loop, so it skips rebuilding the notes.
+function setSectionTempo(i, bpm) {
+  const s = state.sections[i];
+  bpm = clampBpm(bpm);
+  if (bpm === s.bpm) { renderSectionSettings(i); return; }
+  holdPlayhead(() => {
+    s.bpm = bpm;
+    for (const p of lastGood.parts) if (p.section === i) p.bpm = bpm;
+    for (const seg of loop.segments) if (loop.parts[seg.part]?.section === i) seg.bpm = bpm;
+  });
+  renderSectionSettings(i);
   renderFormField();
+  renderExamples();
+}
+
+// A time signature change changes what a beat is, so playback starts over.
+function setSectionSig(i, sig) {
+  const s = state.sections[i];
+  if (sig === s.sig) return;
+  s.sig = sig;
+  renderSectionSettings(i);
+  parseAll();
+  renderCharts();
+  renderErrors();
+  renderFormField();
+  renderExamples();
+  if (!playing) renderDots(firstMeter(), -1);
+  restartIfPlaying();
+}
+
+function setCollapsed(i, collapsed) {
+  state.sections[i].collapsed = collapsed;
+  const el = secEl(i), toggle = el.querySelector(".sec-toggle");
+  el.classList.toggle("collapsed", collapsed);
+  el.querySelector(".sec-body").hidden = collapsed;
+  toggle.setAttribute("aria-expanded", String(!collapsed));
+  toggle.setAttribute("aria-label", `${collapsed ? "Show" : "Hide"} ${multi() ? `section ${i + 1}` : "the song"}`);
+  renderSectionSettings(i);
+  renderCollapseAll();
+}
+
+function renderCollapseAll() {
+  const all = state.sections.every((s) => s.collapsed);
+  $("collapse-all").textContent = all ? "Expand all" : "Collapse all";
 }
 
 // ---- Storage: saved jams and the account ----
@@ -1699,8 +1844,8 @@ function snapshotJam() {
     title: state.title.trim() || "Untitled jam",
     savedAt: Date.now(),
     song: {
-      sections: state.sections.map((s) => ({ name: s.name.trim(), chords: s.chords, bpm: s.bpm ?? null })),
-      form: state.form, sig: state.sig, bpm: state.bpm, length: state.length,
+      sections: state.sections.map((s) => ({ name: s.name.trim(), chords: s.chords, sig: s.sig, bpm: s.bpm })),
+      form: state.form, length: state.length,
     },
     band: { enabled: { ...state.enabled }, levels: { ...state.levels } },
   };
@@ -1872,13 +2017,33 @@ async function initAccount() {
 }
 
 // ---- Events ----
+const sigTimers = new Map(), taps = new Map();
+function applySectionSig(i, input, final) {
+  const el = secEl(i), error = el.querySelector(".sec-sig-error");
+  const text = input.value.trim();
+  clearTimeout(sigTimers.get(i));
+  if (!text) { input.removeAttribute("aria-invalid"); error.hidden = true; return; }
+  try {
+    const m = parseTimeSignature(text);
+    input.removeAttribute("aria-invalid");
+    error.hidden = true;
+    setSectionSig(i, m.label);
+    if (final) { input.value = SIGNATURES.includes(m.label) ? "" : m.label; renderSectionSettings(i); }
+  } catch (err) {
+    // Only complain once they've stopped typing; "11/" is fine on the way to "11/8".
+    if (final) { input.setAttribute("aria-invalid", "true"); error.textContent = err.message; error.hidden = false; }
+  }
+}
+
 function bind() {
-  $("sections").addEventListener("input", (e) => {
-    const el = e.target.closest(".sec");
-    if (!el) return;
-    const s = state.sections[Number(el.dataset.index)];
-    if (e.target.classList.contains("sec-chords")) s.chords = e.target.value;
-    else if (e.target.classList.contains("sec-name")) {
+  const sections = $("sections");
+  const indexOf = (target) => Number(target.closest(".sec")?.dataset.index);
+  sections.addEventListener("input", (e) => {
+    const i = indexOf(e.target), s = state.sections[i];
+    if (!s) return;
+    const t = e.target.classList;
+    if (t.contains("sec-chords")) { s.chords = e.target.value; onSongChanged(); }
+    else if (t.contains("sec-name")) {
       s.name = e.target.value;
       const next = s.name.trim();
       const taken = state.sections.some((o) => o !== s && o.name.trim().toLowerCase() === next.toLowerCase());
@@ -1887,25 +2052,56 @@ function bind() {
         if (state.form.trim()) state.form = renameInForm(state.form, s.formName, next);
         s.formName = next;
       }
-      el.querySelector(".sec-remove")?.classList.remove("armed");
-    } else if (e.target.classList.contains("sec-bpm")) s.bpm = validBpm(e.target.value);
-    else return;
-    onSongChanged();
-  });
-  $("sections").addEventListener("click", (e) => {
-    const button = e.target.closest(".sec-remove");
-    if (!button) return;
-    const i = Number(button.closest(".sec").dataset.index);
-    // A section with chords takes a second tap to remove.
-    if (state.sections[i].chords.trim() && !button.classList.contains("armed")) {
-      button.classList.add("armed");
-      button.textContent = "Remove?";
-      setTimeout(() => { if (button.isConnected) { button.classList.remove("armed"); button.innerHTML = X_ICON; } }, 3000);
-      return;
+      onSongChanged();
+    } else if (t.contains("sec-range")) setSectionTempo(i, Number(e.target.value));
+    else if (t.contains("sec-bpm")) { const bpm = validBpm(e.target.value); if (bpm) setSectionTempo(i, bpm); }
+    else if (t.contains("sec-sig-input")) {
+      clearTimeout(sigTimers.get(i));
+      sigTimers.set(i, setTimeout(() => applySectionSig(i, e.target, false), 700));
     }
-    removeSection(i);
+  });
+  sections.addEventListener("change", (e) => {
+    const i = indexOf(e.target);
+    if (e.target.classList.contains("sec-sig-input")) applySectionSig(i, e.target, true);
+    // An out-of-range tempo snaps back to the nearest one that works.
+    if (e.target.classList.contains("sec-bpm")) setSectionTempo(i, Number(e.target.value) || state.sections[i].bpm);
+  });
+  sections.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target.classList.contains("sec-sig-input")) { e.preventDefault(); applySectionSig(indexOf(e.target), e.target, true); e.target.blur(); }
+  });
+  sections.addEventListener("click", (e) => {
+    const button = e.target.closest("button");
+    if (!button) return;
+    const i = indexOf(button), s = state.sections[i];
+    if (button.classList.contains("sec-toggle")) setCollapsed(i, !s.collapsed);
+    else if (button.classList.contains("tempo-step")) setSectionTempo(i, s.bpm + Number(button.dataset.d));
+    else if (button.classList.contains("chip")) setSectionSig(i, button.dataset.v);
+    else if (button.classList.contains("sec-tap")) {
+      const now = performance.now();
+      const list = (taps.get(i) || []).filter((t) => now - t < 2500).concat(now);
+      taps.set(i, list);
+      if (list.length >= 2) {
+        const gaps = list.slice(1).map((t, k) => t - list[k]).slice(-4);
+        // Taps follow the beat you hear, so convert to quarter notes for 6/8 etc.
+        const beatBpm = 60000 / (gaps.reduce((a, b) => a + b, 0) / gaps.length);
+        setSectionTempo(i, beatBpm / meterFor(s.sig).quartersPerBeat);
+      }
+    } else if (button.classList.contains("sec-remove")) {
+      // A section with chords takes a second tap to remove.
+      if (s.chords.trim() && !button.classList.contains("armed")) {
+        button.classList.add("armed");
+        button.textContent = "Remove?";
+        setTimeout(() => { if (button.isConnected) { button.classList.remove("armed"); button.innerHTML = X_ICON; } }, 3000);
+        return;
+      }
+      removeSection(i);
+    }
   });
   $("add-section").addEventListener("click", () => requirePro("sections", addSection));
+  $("collapse-all").addEventListener("click", () => {
+    const collapse = !state.sections.every((s) => s.collapsed);
+    state.sections.forEach((_, i) => setCollapsed(i, collapse));
+  });
   $("form").addEventListener("input", (e) => {
     state.form = e.target.value;
     clearTimeout(formTyping);
@@ -1946,47 +2142,10 @@ function bind() {
   });
   $("account-close").addEventListener("click", () => $("account-dialog").close());
   $("account-cancel").addEventListener("click", cancelPro);
-  $("signatures").addEventListener("click", (e) => {
-    const b = e.target.closest(".chip"); if (!b || b.dataset.v === state.sig) return;
-    state.sig = b.dataset.v; renderControls(); renderFormField(); renderDots(-1); restartIfPlaying();
-  });
-  let sigTimer = 0;
-  const applySig = (final) => {
-    const input = $("sig-input");
-    const text = input.value.trim();
-    clearTimeout(sigTimer);
-    if (!text) { input.removeAttribute("aria-invalid"); $("sig-error").hidden = true; return; }
-    try {
-      const m = parseTimeSignature(text);
-      input.removeAttribute("aria-invalid"); $("sig-error").hidden = true;
-      $("sig-feel").textContent = describeMeter(m);
-      if (m.label !== state.sig) { state.sig = m.label; renderControls(); renderFormField(); renderDots(-1); restartIfPlaying(); }
-      if (final) { input.value = SIGNATURES.includes(m.label) ? "" : m.label; renderControls(); }
-    } catch (err) {
-      // Only complain once they've stopped typing; "11/" is fine on the way to "11/8".
-      if (final) { input.setAttribute("aria-invalid", "true"); $("sig-error").textContent = err.message; $("sig-error").hidden = false; }
-    }
-  };
-  $("sig-input").addEventListener("input", () => { clearTimeout(sigTimer); sigTimer = setTimeout(() => applySig(false), 700); });
-  $("sig-input").addEventListener("change", () => applySig(true));
-  $("sig-input").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); applySig(true); e.target.blur(); } });
   $("lengths").addEventListener("click", (e) => {
     const b = e.target.closest(".chip"); if (!b) return;
-    state.length = b.dataset.v; renderCharts(); renderControls(); renderFormField(); restartIfPlaying();
-  });
-  $("tempo").addEventListener("input", (e) => setTempo(Number(e.target.value)));
-  $("tempo-down").addEventListener("click", () => setTempo(state.bpm - 1));
-  $("tempo-up").addEventListener("click", () => setTempo(state.bpm + 1));
-  let taps = [];
-  $("tap").addEventListener("click", () => {
-    const now = performance.now();
-    taps = taps.filter((t) => now - t < 2500).concat(now);
-    if (taps.length >= 2) {
-      const gaps = taps.slice(1).map((t, i) => t - taps[i]).slice(-4);
-      // Taps follow the beat you hear, so convert to quarter notes for 6/8 etc.
-      const beatBpm = 60000 / (gaps.reduce((a, b) => a + b, 0) / gaps.length);
-      setTempo(beatBpm / meterOf().quartersPerBeat);
-    }
+    state.length = b.dataset.v;
+    parseAll(); renderCharts(); renderControls(); renderFormField(); restartIfPlaying();
   });
   $("countin").addEventListener("change", (e) => { state.countIn = e.target.checked; persist(); });
   $("repeats").addEventListener("change", (e) => { state.repeats = Number(e.target.value); persist(); });
@@ -2013,11 +2172,11 @@ async function saveMidi() {
   const status = $("save-status");
   const names = INSTRUMENTS.map((i) => i.name).filter((n) => state.enabled[n]);
   if (!names.length) { status.textContent = "Turn on at least one instrument to save a file."; status.hidden = false; return; }
-  const meter = meterOf();
-  const midi = buildMidi({ parts: lastGood.parts, meter, beatsPerChord: beatsPerChord(meter), repeats: state.repeats, bpm: state.bpm, names });
+  const first = lastGood.parts[0];
+  const midi = buildMidi({ parts: lastGood.parts, meter: first.meter, beatsPerChord: first.beatsPerChord, repeats: state.repeats, bpm: first.bpm, names });
   const source = state.title.trim() || lastGood.parts.flatMap((p) => p.chords.map((c) => c.symbol)).slice(0, 12).join("-");
   const slug = source.replace(/#/g, "s").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "jam";
-  const base = `jam-${slug}-${state.bpm}bpm-${state.sig.replace(/[^0-9]+/g, "-")}`;
+  const base = `jam-${slug}-${first.bpm}bpm-${first.meter.label.replace(/[^0-9]+/g, "-")}`;
   if (directDownload) {
     // Opened outside Claude (e.g. from the repo): a plain download works there.
     const a = document.createElement("a");
@@ -2045,7 +2204,7 @@ renderErrors();
 renderFormField();
 renderControls();
 renderPro();
-renderDots(-1);
+renderCollapseAll();
 showNowChord(firstSymbol());
 bind();
 initAccount();

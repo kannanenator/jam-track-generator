@@ -66,24 +66,35 @@ generate("Am F C G", "jam.mid", instruments=["guitar", "bass", "drums"],
 `web/index.html` is the same generator as a single page that runs in a
 browser, phones included: type chords or pick an example, transpose them a
 half step at a time, set the tempo and time signature (any `N/D`, or a
-grouping like `3+2+2/8`), mix the band and play along. It synthesizes the
+grouping like `3+2+2/8`), mix the band and play along. Tempo and time
+signature belong to each section of the song, so the music can change speed
+and meter as it goes. It synthesizes the
 instruments in the browser and can save the MIDI file. Open the file directly
 or serve the `web/` folder from any static host, such as GitHub Pages.
 
 ### Sections and play order (Pro)
 
 A song can have up to 12 named sections (A, B, Verse, Chorus, Intro...), each
-with its own chords and, optionally, its own tempo. The play order lists
-section names, like `A A B B` or `Verse Chorus x2 Bridge Chorus`; left empty,
-each section plays once in order. Playback follows the order and each
-section's tempo, the chart highlights the section and chord that's playing,
-and the saved MIDI file carries a tempo change and a marker at each section.
+with its own chords, tempo and time signature; a new section starts with the
+previous one's tempo and time signature. Each section collapses to a one-line
+summary. The play order lists section names, like `A A B B` or
+`Verse Chorus x2 Bridge Chorus`; left empty, each section plays once in
+order.
+
+Playback follows the order, each section's tempo and its meter: a section in
+a new time signature starts on a fresh bar, while sections in the same meter
+carry the bar on. The chart highlights the section and chord that's playing,
+and the saved MIDI file carries a marker plus any tempo or time signature
+change at each section.
 
 ### Pro and the test-mode paywall
 
-Free: one section, everything else above. Pro: more than one section, and
-saving jams (title, sections, tempo, time signature and band mix) to open
-again later.
+Free: one section (with its own tempo and time signature), everything else
+above. Pro: more than one section, and
+saving jams (title, sections with their tempos and time signatures, play
+order and band mix) to open again later. Jams saved before sections had their
+own tempo and time signature open with the song's old settings on every
+section.
 
 Billing is scaffolding for now. The page talks to billing only through
 `createTestBilling`'s three methods (`status`, `subscribe`, `cancel`) in the
